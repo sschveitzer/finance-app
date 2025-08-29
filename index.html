@@ -17,9 +17,11 @@
     <h3 style="margin-top:0;margin-bottom:12px">Entrar</h3>
     <form id="loginForm" onsubmit="return false;">
       <input type="email" id="email" placeholder="Email" 
-             style="width:100%;margin-bottom:8px;padding:10px;border:1px solid var(--border);border-radius:10px" required>
+             autocomplete="email" required
+             style="width:100%;margin-bottom:8px;padding:10px;border:1px solid var(--border);border-radius:10px">
       <input type="password" id="password" placeholder="Senha" 
-             style="width:100%;margin-bottom:12px;padding:10px;border:1px solid var(--border);border-radius:10px" required>
+             autocomplete="current-password" required
+             style="width:100%;margin-bottom:12px;padding:10px;border:1px solid var(--border);border-radius:10px">
       <div style="display:flex;gap:8px">
         <button type="button" class="btn" id="btnLogin">Entrar</button>
         <button type="button" class="btn secondary" id="btnSignup">Cadastrar</button>
