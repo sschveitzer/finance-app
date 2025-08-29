@@ -175,24 +175,17 @@
 <script type="module">
   import { checkUser, doLogout } from "./js/auth.js";
 
-const { createClient } = supabase;
-window.supabase = createClient(
+  const { createClient } = supabase;
+  window.supabase = createClient(
     "https://xkflckzrjnyadobgeerh.supabase.co",
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhrZmxja3pyam55YWRvYmdlZXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0NjQ2NzksImV4cCI6MjA3MjA0MDY3OX0.Me2Ch8t2w1id4VRRncRoCA2PH_OTFHD_Iy7mBBS0SNg",
-  {
-    auth: {
-      persistSession: true,   // mantém sessão entre F5
-      autoRefreshToken: true  // renova token automaticamente
-    }
-  }
-);
+    { auth: { persistSession: true, autoRefreshToken: true } }
+  );
 
-  // Garante que só acessa logado
   checkUser();
 
-  // Botão sair
   document.getElementById("btnLogout").addEventListener("click", async () => {
-    await doLogout(); // já redireciona para index.html
+    await doLogout();
   });
 </script>
 
@@ -200,3 +193,4 @@ window.supabase = createClient(
 <script type="module" src="js/app.js"></script>
 </body>
 </html>
+
