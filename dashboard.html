@@ -39,7 +39,7 @@
       <div class="grid cards">
         <div class="card">
           <h3>Últimos lançamentos</h3>
-          <ul id="ultimosLancamentos" class="list"></ul>
+          <ul id="ultimosLanc" class="list"></ul>
         </div>
         <div class="card">
           <h3>Top categorias (12 meses)</h3>
@@ -62,7 +62,7 @@
     <section id="categorias">
       <div class="card">
         <h3>Categorias</h3>
-        <ul id="listaCategorias" class="list"></ul>
+        <ul id="listaCats" class="list"></ul>
       </div>
     </section>
   </div>
@@ -71,35 +71,35 @@
   <button class="fab" id="btnAdd">+</button>
 
   <!-- 🔹 Modal -->
-  <div class="modal" id="modalLancamento">
+  <div class="modal" id="modalLanc">
     <div class="content">
       <div class="title">
-        <h3>Novo Lançamento</h3>
+        <h3 id="modalTitle">Novo Lançamento</h3>
         <button class="icon" id="btnCloseModal">✕</button>
       </div>
-      <form id="formLancamento">
+      <form id="formLanc">
         <div class="typetabs">
           <button type="button" data-type="Receita">Receita</button>
           <button type="button" data-type="Despesa">Despesa</button>
           <button type="button" data-type="Transferência">Transferência</button>
         </div>
-        <input type="number" id="valor" class="amount" placeholder="0,00" required>
+        <input type="number" id="mValorBig" class="amount" placeholder="0,00" required>
         <div class="row3">
           <div>
-            <label for="categoria">Categoria</label>
-            <select id="categoria"></select>
+            <label for="mCategoria">Categoria</label>
+            <select id="mCategoria"></select>
           </div>
           <div>
-            <label for="data">Data</label>
-            <input type="date" id="data" required>
+            <label for="mData">Data</label>
+            <input type="date" id="mData" required>
           </div>
           <div>
-            <label for="descricao">Descrição</label>
-            <input type="text" id="descricao" placeholder="Ex: Aluguel">
+            <label for="mDesc">Descrição</label>
+            <input type="text" id="mDesc" placeholder="Ex: Aluguel">
           </div>
         </div>
-        <label for="obs">Observações</label>
-        <textarea id="obs"></textarea>
+        <label for="mObs">Observações</label>
+        <textarea id="mObs"></textarea>
         <div class="actions">
           <button type="button" class="btn-cancel" id="btnCancel">Cancelar</button>
           <button type="submit" id="salvar" class="btn-save">Salvar</button>
