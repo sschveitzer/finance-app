@@ -9,27 +9,38 @@ export async function checkUser() {
   try {
     if (!window.supabase) {
       setCurrentUser(null);
-      await loadAll();
-      render();
+      document.getElementById("authScreen").style.display = "block";
+      document.querySelector(".container").style.display = "none";
       return;
     }
+
     const { data: { user } } = await supabase.auth.getUser();
     setCurrentUser(user);
-    await loadAll();
-    render();
+
+    if (user) {
+      // Usuário logado → mostra dashboard
+      document.getElementById("authScreen").style.display = "none";
+      document.querySelector(".container").style.display = "block";
+      await loadAll();
+      render();
+    } else {
+      // Sem usuário → mostra tela de login
+      document.getElementById("authScreen").style.display = "block";
+      document.querySelector(".container").style.display = "none";
+    }
   } catch (e) {
     console.warn("checkUser falhou", e);
     setCurrentUser(null);
-    await loadAll();
-    render();
+    document.getElementById("authScreen").style.display = "block";
+    document.querySelector(".container").style.display = "none";
   }
 }
 
 export async function doLogin(email, password) {
   try {
-    if (!window.supabase) { 
-      alert("Sem Supabase configurado. Os dados serão salvos localmente."); 
-      return; 
+    if (!window.supabase) {
+      alert("Sem Supabase configurado.");
+      return;
     }
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) alert(error.message);
@@ -40,9 +51,9 @@ export async function doLogin(email, password) {
 
 export async function doSignup(email, password) {
   try {
-    if (!window.supabase) { 
-      alert("Sem Supabase configurado."); 
-      return; 
+    if (!window.supabase) {
+      alert("Sem Supabase configurado.");
+      return;
     }
     const { error } = await supabase.auth.signUp({ email, password });
     if (error) alert(error.message);
@@ -64,7 +75,6 @@ export async function doLogout() {
   } catch (e) {
     console.error("Falha no logout", e);
   } finally {
-    // Força resetar estado e voltar pro login
     setCurrentUser(null);
     await checkUser();
   }
