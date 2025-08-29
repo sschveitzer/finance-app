@@ -112,10 +112,10 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script type="module">
-    import { checkUser, doLogout } from "./auth.js";
-    import { loadAll } from "./storage.js";
-    import { render } from "./ui.js";
-    import "./app.js";
+    import { checkUser, doLogout } from "./js/auth.js";
+    import { loadAll } from "./js/storage.js";
+    import { render } from "./js/ui.js";
+    import "./js/app.js";
 
     // Inicializa Supabase
     const { createClient } = supabase;
@@ -145,10 +145,11 @@
     });
   </script>
   
-<script type="module" src="./app.js"></script>
+<script type="module" src="./js/app.js"></script>
   
 </body>
 </html>
+
 
 
 
