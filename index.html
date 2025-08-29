@@ -195,6 +195,18 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
     );
   </script>
+<!-- App -->
+<script type="module">
+  import { checkUser } from "./js/auth.js";
+
+  // Ao carregar a página, verifica usuário logado
+  checkUser();
+
+  // Monitora mudanças de sessão (login/logout)
+  supabase.auth.onAuthStateChange((_event, session) => {
+    checkUser();
+  });
+</script>  
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
