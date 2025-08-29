@@ -1,98 +1,72 @@
 // =============================
-// app.js - Inicialização da UI
+// app.js - Fluxo principal
 // =============================
-
-import { doLogin, doSignup, doLogout } from "./js/auth.js";
 import { addTransaction } from "./js/storage.js";
-import { setModalTipo, toggleModal } from "./js/ui.js";
+import { render } from "./js/ui.js";
+import { getCurrentUser } from "./js/state.js";
 
 // =============================
-// Utilitários
+// Utils
 // =============================
-const qs = (sel) => document.querySelector(sel);
-
-// =============================
-// Autenticação (login / signup / logout)
-// =============================
-
-// Login
-qs("#btnLogin")?.addEventListener("click", async (e) => {
-  e.preventDefault();
-  const email = qs("#email").value;
-  const password = qs("#password").value;
-  await doLogin(email, password);
-});
-
-// Cadastro
-qs("#btnSignup")?.addEventListener("click", async (e) => {
-  e.preventDefault();
-  const email = qs("#email").value;
-  const password = qs("#password").value;
-  await doSignup(email, password);
-});
-
-// Logout (dashboard)
-qs("#btnLogout")?.addEventListener("click", async () => {
-  await doLogout();
-});
+const qs = (s) => document.querySelector(s);
 
 // =============================
-// Modal de lançamentos
+// Modal Lançamento
 // =============================
-
-// Abrir modal (FAB → btnAdd)
+const modal = qs("#modalLanc");
 qs("#btnAdd")?.addEventListener("click", () => {
-  setModalTipo("Despesa");
-  toggleModal(true, "Nova Despesa");
+  modal.style.display = "flex";
+});
+qs("#btnCloseModal")?.addEventListener("click", () => {
+  modal.style.display = "none";
+});
+qs("#btnCancel")?.addEventListener("click", () => {
+  modal.style.display = "none";
 });
 
-// Fechar modal
-qs("#btnCloseModal")?.addEventListener("click", () => toggleModal(false));
-qs("#btnCancel")?.addEventListener("click", () => toggleModal(false));
+// =============================
+// Tabs de tipo
+// =============================
+document.querySelectorAll(".typetabs button").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".typetabs button").forEach((b) =>
+      b.classList.remove("active")
+    );
+    btn.classList.add("active");
+  });
+});
 
+// =============================
 // Salvar lançamento
+// =============================
 qs("#salvar")?.addEventListener("click", async (e) => {
   e.preventDefault();
-  const valor = parseFloat(qs("#valor").value || 0);
-  const tipo = document.querySelector(".typetabs button.active")?.dataset.type || "Despesa";
-  const categoria = qs("#categoria").value;
-  const data = qs("#data").value;
-  const descricao = qs("#descricao").value;
-  const obs = qs("#obs").value;
+
+  const valor = parseFloat(qs("#mValorBig").value || 0);
+  const tipo =
+    document.querySelector(".typetabs button.active")?.dataset.type ||
+    "Despesa";
+  const categoria = qs("#mCategoria").value;
+  const data = qs("#mData").value;
+  const descricao = qs("#mDesc").value;
+  const obs = qs("#mObs").value;
 
   if (!valor || !data || !categoria) {
-    alert("Preencha todos os campos obrigatórios.");
+    alert("Preencha os campos obrigatórios.");
     return;
   }
 
-  await addTransaction({
-    valor,
+  const tx = {
+    user_id: getCurrentUser()?.id,
     tipo,
     categoria,
     data,
     descricao,
     obs,
-  });
+    valor,
+  };
 
-  toggleModal(false);
+  await addTransaction(tx);
+  modal.style.display = "none";
+  render();
 });
-
-// =============================
-// Supabase Auth State
-// =============================
-
-// Não chamamos checkUser() aqui diretamente para evitar conflito no F5.
-// O controle de sessão já é feito no index.html e dashboard.html
-// usando supabase.auth.getSession() + onAuthStateChange.
-
-// Apenas mantemos o listener caso a sessão mude:
-if (window.supabase) {
-  supabase.auth.onAuthStateChange((_event, session) => {
-    if (!session?.user) {
-      // Se perder sessão → volta pro login
-      if (!window.location.pathname.includes("index.html")) {
-        window.location.href = "index.html";
-      }
-    }
-  });
-}
