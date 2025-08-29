@@ -1,5 +1,5 @@
 // storage.js - Persistência no Supabase (sem localStorage)
-import { S, getCurrentUser, normalizeTx } from "./state.js";
+import { S, getCurrentUser, normalizeTx } from "./js/state.js";
 
 export async function loadAll() {
   const user = getCurrentUser();
