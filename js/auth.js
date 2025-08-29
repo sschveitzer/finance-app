@@ -16,11 +16,11 @@ export async function checkUser() {
       return;
     }
 
-    // ✅ usa getUser (mais estável no reload do Supabase)
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error) {
-      console.warn("Erro ao obter usuário:", error.message);
-    }
+    // ✅ usa getSession (pega direto do localStorage, sem perder no F5)
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) console.warn("Erro ao obter sessão:", error);
+
+    const user = session?.user || null;
     setCurrentUser(user);
 
     if (user) {
@@ -29,7 +29,6 @@ export async function checkUser() {
         await loadAll();
         render();
       } else if (window.location.pathname.includes("index.html")) {
-        // se já está logado mas na tela de login → manda pro dashboard
         window.location.href = "dashboard.html";
       }
     } else {
@@ -39,7 +38,7 @@ export async function checkUser() {
       }
     }
   } catch (e) {
-    console.warn("checkUser falhou", e);
+    console.error("checkUser falhou", e);
     setCurrentUser(null);
     if (!window.location.pathname.includes("index.html")) {
       window.location.href = "index.html";
@@ -58,7 +57,7 @@ export async function doLogin(email, password) {
     if (error) {
       alert(error.message);
     } else {
-      window.location.href = "dashboard.html";
+      window.location.href = "dashboard.html"; // ✅ redireciona após login
     }
   } catch (e) {
     alert(e.message || "Erro ao entrar");
@@ -97,6 +96,6 @@ export async function doLogout() {
     console.error("Falha no logout", e);
   } finally {
     setCurrentUser(null);
-    window.location.href = "index.html"; // 🚪 volta pro login
+    window.location.href = "index.html"; // 🚪 força login sempre
   }
 }
