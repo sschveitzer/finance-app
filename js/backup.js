@@ -1,9 +1,9 @@
 // =============================
 // backup.js - Export/Import/Reset
 // =============================
-import { S, normalizeTx } from "./state.js";
-import { saveTx, saveCats, savePrefs } from "./storage.js";
-import { render } from "./ui.js";
+import { S, normalizeTx } from "./js/state.js";
+import { saveTx, saveCats, savePrefs } from "./js/storage.js";
+import { render } from "./js/ui.js";
 
 export function exportData() {
   const data = { tx: S.tx, cats: S.cats, prefs: { month: S.month, hide: S.hide, dark: S.dark } };
