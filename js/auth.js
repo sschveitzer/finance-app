@@ -5,11 +5,12 @@ import { setCurrentUser } from "./state.js";
 import { loadAll } from "./storage.js";
 import { render } from "./ui.js";
 
+// Verifica usuário logado
 export async function checkUser() {
   try {
     if (!window.supabase) {
       setCurrentUser(null);
-      window.location.href = "index.html"; // se não tiver supabase → vai pro login
+      window.location.href = "index.html"; // sem supabase → login
       return;
     }
 
@@ -17,12 +18,19 @@ export async function checkUser() {
     setCurrentUser(user);
 
     if (user) {
-      // Usuário logado → carrega dashboard
-      await loadAll();
-      render();
+      // Usuário logado → só carrega dados se estiver no dashboard
+      if (window.location.pathname.includes("dashboard.html")) {
+        await loadAll();
+        render();
+      } else {
+        // se estiver no login mas já logado → manda pro dashboard
+        window.location.href = "dashboard.html";
+      }
     } else {
-      // Não logado → manda pro login
-      window.location.href = "index.html";
+      // sem usuário → manda pro login
+      if (!window.location.pathname.includes("index.html")) {
+        window.location.href = "index.html";
+      }
     }
   } catch (e) {
     console.warn("checkUser falhou", e);
@@ -31,24 +39,26 @@ export async function checkUser() {
   }
 }
 
+// Login
 export async function doLogin(email, password) {
   try {
     if (!window.supabase) {
       alert("Sem Supabase configurado.");
       return;
     }
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       alert(error.message);
-      return;
+    } else {
+      // 🔑 Login OK → redireciona para dashboard
+      window.location.href = "dashboard.html";
     }
-    // login OK → redireciona para dashboard
-    window.location.href = "dashboard.html";
   } catch (e) {
     alert(e.message || "Erro ao entrar");
   }
 }
 
+// Cadastro
 export async function doSignup(email, password) {
   try {
     if (!window.supabase) {
@@ -66,6 +76,7 @@ export async function doSignup(email, password) {
   }
 }
 
+// Logout
 export async function doLogout() {
   try {
     if (window.supabase) {
@@ -79,7 +90,7 @@ export async function doLogout() {
     console.error("Falha no logout", e);
   } finally {
     setCurrentUser(null);
-    // sempre redireciona para login
+    // 🚪 sempre volta para login
     window.location.href = "index.html";
   }
 }
