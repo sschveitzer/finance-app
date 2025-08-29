@@ -1,9 +1,9 @@
 // =============================
 // auth.js - Autenticação
 // =============================
-import { setCurrentUser } from "./js/state.js";
-import { loadAll } from "./js/storage.js";
-import { render } from "./js/ui.js";
+import { setCurrentUser } from "./state.js";
+import { loadAll } from "./storage.js";
+import { render } from "./ui.js";
 
 // Verifica usuário logado
 export async function checkUser() {
