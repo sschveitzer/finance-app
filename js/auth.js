@@ -9,8 +9,7 @@ export async function checkUser() {
   try {
     if (!window.supabase) {
       setCurrentUser(null);
-      document.getElementById("authScreen").style.display = "block";
-      document.querySelector(".container").style.display = "none";
+      window.location.href = "index.html"; // se não tiver supabase → vai pro login
       return;
     }
 
@@ -18,21 +17,17 @@ export async function checkUser() {
     setCurrentUser(user);
 
     if (user) {
-      // Usuário logado → mostra dashboard
-      document.getElementById("authScreen").style.display = "none";
-      document.querySelector(".container").style.display = "block";
+      // Usuário logado → carrega dashboard
       await loadAll();
       render();
     } else {
-      // Sem usuário → mostra tela de login
-      document.getElementById("authScreen").style.display = "block";
-      document.querySelector(".container").style.display = "none";
+      // Não logado → manda pro login
+      window.location.href = "index.html";
     }
   } catch (e) {
     console.warn("checkUser falhou", e);
     setCurrentUser(null);
-    document.getElementById("authScreen").style.display = "block";
-    document.querySelector(".container").style.display = "none";
+    window.location.href = "index.html";
   }
 }
 
@@ -43,9 +38,14 @@ export async function doLogin(email, password) {
       return;
     }
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) alert(error.message);
-  } finally {
-    await checkUser();
+    if (error) {
+      alert(error.message);
+      return;
+    }
+    // login OK → redireciona para dashboard
+    window.location.href = "dashboard.html";
+  } catch (e) {
+    alert(e.message || "Erro ao entrar");
   }
 }
 
@@ -56,8 +56,11 @@ export async function doSignup(email, password) {
       return;
     }
     const { error } = await supabase.auth.signUp({ email, password });
-    if (error) alert(error.message);
-    else alert("Conta criada! Verifique seu email e depois faça login.");
+    if (error) {
+      alert(error.message);
+    } else {
+      alert("Conta criada! Verifique seu email e depois faça login.");
+    }
   } catch (e) {
     alert(e.message || "Erro ao cadastrar");
   }
@@ -75,9 +78,8 @@ export async function doLogout() {
   } catch (e) {
     console.error("Falha no logout", e);
   } finally {
-    // Força resetar o usuário e exibir tela de login
     setCurrentUser(null);
-    document.getElementById("authScreen").style.display = "block";
-    document.querySelector(".container").style.display = "none";
+    // sempre redireciona para login
+    window.location.href = "index.html";
   }
 }
