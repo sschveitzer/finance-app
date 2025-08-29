@@ -1,85 +1,98 @@
 // =============================
-// app.js - Inicialização & binds
+// app.js - Inicialização da UI
 // =============================
-import { qs, qsa, setModalTipo } from "./state.js";
-import { addOrUpdate, toggleModal, render } from "./ui.js";
-import { checkUser, doLogin, doSignup, doLogout } from "./auth.js";
-import { exportData, importData, resetAll } from "./backup.js";
 
-function bindGlobalUI() {
-  // Nav tabs
-  qsa(".tabs .tab").forEach((b) => {
-    b.addEventListener("click", () => {
-      const tab = b.dataset.tab;
-      document.querySelectorAll(".tabs .tab").forEach((x) => x.classList.toggle("active", x === b));
-      document.querySelectorAll("section").forEach((s) => s.classList.toggle("active", s.id === tab));
-    });
+import { doLogin, doSignup, doLogout } from "./js/auth.js";
+import { addTransaction } from "./js/storage.js";
+import { setModalTipo, toggleModal } from "./js/ui.js";
+
+// =============================
+// Utilitários
+// =============================
+const qs = (sel) => document.querySelector(sel);
+
+// =============================
+// Autenticação (login / signup / logout)
+// =============================
+
+// Login
+qs("#btnLogin")?.addEventListener("click", async (e) => {
+  e.preventDefault();
+  const email = qs("#email").value;
+  const password = qs("#password").value;
+  await doLogin(email, password);
+});
+
+// Cadastro
+qs("#btnSignup")?.addEventListener("click", async (e) => {
+  e.preventDefault();
+  const email = qs("#email").value;
+  const password = qs("#password").value;
+  await doSignup(email, password);
+});
+
+// Logout (dashboard)
+qs("#btnLogout")?.addEventListener("click", async () => {
+  await doLogout();
+});
+
+// =============================
+// Modal de lançamentos
+// =============================
+
+// Abrir modal (FAB → btnAdd)
+qs("#btnAdd")?.addEventListener("click", () => {
+  setModalTipo("Despesa");
+  toggleModal(true, "Nova Despesa");
+});
+
+// Fechar modal
+qs("#btnCloseModal")?.addEventListener("click", () => toggleModal(false));
+qs("#btnCancel")?.addEventListener("click", () => toggleModal(false));
+
+// Salvar lançamento
+qs("#salvar")?.addEventListener("click", async (e) => {
+  e.preventDefault();
+  const valor = parseFloat(qs("#valor").value || 0);
+  const tipo = document.querySelector(".typetabs button.active")?.dataset.type || "Despesa";
+  const categoria = qs("#categoria").value;
+  const data = qs("#data").value;
+  const descricao = qs("#descricao").value;
+  const obs = qs("#obs").value;
+
+  if (!valor || !data || !categoria) {
+    alert("Preencha todos os campos obrigatórios.");
+    return;
+  }
+
+  await addTransaction({
+    valor,
+    tipo,
+    categoria,
+    data,
+    descricao,
+    obs,
   });
 
-  // Botões auth
-  qs("#btnLogin")?.addEventListener("click", () => doLogin(qs("#email").value, qs("#password").value));
-  qs("#btnSignup")?.addEventListener("click", () => doSignup(qs("#email").value, qs("#password").value));
-  qs("#btnLogout")?.addEventListener("click", doLogout);
+  toggleModal(false);
+});
 
-  // Novo lançamento
-  qs("#fab")?.addEventListener("click", () => { setModalTipo("Despesa"); toggleModal(true, "Nova Despesa"); });
-  qs("#btnNovo")?.addEventListener("click", () => { setModalTipo("Despesa"); toggleModal(true, "Nova Despesa"); });
-  qs("#salvar")?.addEventListener("click", addOrUpdate);
-  qs("#cancelar")?.addEventListener("click", () => toggleModal(false));
-  qs("#closeModal")?.addEventListener("click", () => toggleModal(false));
+// =============================
+// Supabase Auth State
+// =============================
 
-  // Tabs de tipo (Despesa/Receita/Transferência)
-  qs("#tipoTabs")?.addEventListener("click", (e) => {
-    const btn = e.target.closest("button[data-type]");
-    if (!btn) return;
-    qsa("#tipoTabs button").forEach((x) => x.classList.toggle("active", x === btn));
-    setModalTipo(btn.dataset.type);
-  });
+// Não chamamos checkUser() aqui diretamente para evitar conflito no F5.
+// O controle de sessão já é feito no index.html e dashboard.html
+// usando supabase.auth.getSession() + onAuthStateChange.
 
-  // Filtros e busca da dashboard
-  qs("#filterTipo")?.addEventListener("change", (e) => { window.S.filterTipo = e.target.value; render(); });
-  qs("#searchLanc")?.addEventListener("input", (e) => { window.S.search = e.target.value || ""; render(); });
-
-  // Toggle hide/dark
-  qs("#toggleHide")?.addEventListener("change", () => { window.S.hide = !!qs("#toggleHide").checked; render(); });
-  qs("#toggleDark")?.addEventListener("click", () => { window.S.dark = !window.S.dark; render(); });
-
-  // Categorias
-  qs("#addCat")?.addEventListener("click", async () => {
-    const name = (qs("#newCatName")?.value || "").trim();
-    if (!name) return;
-    window.S.cats.push({ id: crypto.randomUUID?.() || Date.now().toString(), nome: name });
-    qs("#newCatName").value = "";
-    const { saveCats } = await import("./storage.js"); // lazy import para evitar ciclo
-    await saveCats();
-    render();
-  });
-
-  // Backup
-  qs("#btnExport")?.addEventListener("click", exportData);
-  qs("#fileImport")?.addEventListener("change", importData);
-  qs("#btnReset")?.addEventListener("click", resetAll);
-
-  // Atalhos
-  document.addEventListener("keydown", (e) => {
-    if (e.key.toLowerCase() === "n") { setModalTipo("Despesa"); toggleModal(true, "Nova Despesa"); }
-    if (e.key === "Escape") toggleModal(false);
+// Apenas mantemos o listener caso a sessão mude:
+if (window.supabase) {
+  supabase.auth.onAuthStateChange((_event, session) => {
+    if (!session?.user) {
+      // Se perder sessão → volta pro login
+      if (!window.location.pathname.includes("index.html")) {
+        window.location.href = "index.html";
+      }
+    }
   });
 }
-
-async function start() {
-  // Expor S global para handlers simples
-  window.S = (await import("./state.js")).S;
-  bindGlobalUI();
-  await checkUser();
-}
-
-// DOM ready
-if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
-else start();
-
-// Reagir à mudança de auth
-if (window.supabase?.auth) {
-  supabase.auth.onAuthStateChange(() => checkUser());
-}
-
