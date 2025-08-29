@@ -10,24 +10,31 @@ export async function checkUser() {
   try {
     if (!window.supabase) {
       setCurrentUser(null);
-      window.location.href = "index.html"; // sem supabase → login
+      if (!window.location.pathname.includes("index.html")) {
+        window.location.href = "index.html";
+      }
       return;
     }
 
-    const { data: { user } } = await supabase.auth.getUser();
+    // ✅ pega sessão (mais confiável que getUser no load inicial)
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) {
+      console.warn("Erro ao obter sessão:", error.message);
+    }
+    const user = session?.user || null;
     setCurrentUser(user);
 
     if (user) {
-      // Usuário logado → só carrega dados se estiver no dashboard
+      // Usuário logado
       if (window.location.pathname.includes("dashboard.html")) {
         await loadAll();
         render();
-      } else {
-        // se estiver no login mas já logado → manda pro dashboard
+      } else if (window.location.pathname.includes("index.html")) {
+        // já está no login mas autenticado → manda pro dashboard
         window.location.href = "dashboard.html";
       }
     } else {
-      // sem usuário → manda pro login
+      // Sem usuário → sempre força tela de login
       if (!window.location.pathname.includes("index.html")) {
         window.location.href = "index.html";
       }
@@ -35,7 +42,9 @@ export async function checkUser() {
   } catch (e) {
     console.warn("checkUser falhou", e);
     setCurrentUser(null);
-    window.location.href = "index.html";
+    if (!window.location.pathname.includes("index.html")) {
+      window.location.href = "index.html";
+    }
   }
 }
 
