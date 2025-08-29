@@ -75,7 +75,9 @@ export async function doLogout() {
   } catch (e) {
     console.error("Falha no logout", e);
   } finally {
+    // Força resetar o usuário e exibir tela de login
     setCurrentUser(null);
-    await checkUser();
+    document.getElementById("authScreen").style.display = "block";
+    document.querySelector(".container").style.display = "none";
   }
 }
