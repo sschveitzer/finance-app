@@ -16,12 +16,11 @@ export async function checkUser() {
       return;
     }
 
-    // ✅ pega sessão (mais confiável que getUser no load inicial)
-    const { data: { session }, error } = await supabase.auth.getSession();
+    // ✅ usa getUser (mais estável no reload do Supabase)
+    const { data: { user }, error } = await supabase.auth.getUser();
     if (error) {
-      console.warn("Erro ao obter sessão:", error.message);
+      console.warn("Erro ao obter usuário:", error.message);
     }
-    const user = session?.user || null;
     setCurrentUser(user);
 
     if (user) {
@@ -30,11 +29,11 @@ export async function checkUser() {
         await loadAll();
         render();
       } else if (window.location.pathname.includes("index.html")) {
-        // já está no login mas autenticado → manda pro dashboard
+        // se já está logado mas na tela de login → manda pro dashboard
         window.location.href = "dashboard.html";
       }
     } else {
-      // Sem usuário → sempre força tela de login
+      // Sem usuário → sempre força login
       if (!window.location.pathname.includes("index.html")) {
         window.location.href = "index.html";
       }
@@ -55,11 +54,10 @@ export async function doLogin(email, password) {
       alert("Sem Supabase configurado.");
       return;
     }
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       alert(error.message);
     } else {
-      // 🔑 Login OK → redireciona para dashboard
       window.location.href = "dashboard.html";
     }
   } catch (e) {
@@ -99,7 +97,6 @@ export async function doLogout() {
     console.error("Falha no logout", e);
   } finally {
     setCurrentUser(null);
-    // 🚪 sempre volta para login
-    window.location.href = "index.html";
+    window.location.href = "index.html"; // 🚪 volta pro login
   }
 }
