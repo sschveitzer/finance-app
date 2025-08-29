@@ -27,7 +27,10 @@ export async function checkUser() {
 
 export async function doLogin(email, password) {
   try {
-    if (!window.supabase) { alert("Sem Supabase configurado. Os dados serão salvos localmente."); return; }
+    if (!window.supabase) { 
+      alert("Sem Supabase configurado. Os dados serão salvos localmente."); 
+      return; 
+    }
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) alert(error.message);
   } finally {
@@ -37,7 +40,10 @@ export async function doLogin(email, password) {
 
 export async function doSignup(email, password) {
   try {
-    if (!window.supabase) { alert("Sem Supabase configurado."); return; }
+    if (!window.supabase) { 
+      alert("Sem Supabase configurado."); 
+      return; 
+    }
     const { error } = await supabase.auth.signUp({ email, password });
     if (error) alert(error.message);
     else alert("Conta criada! Verifique seu email e depois faça login.");
@@ -48,9 +54,18 @@ export async function doSignup(email, password) {
 
 export async function doLogout() {
   try {
-    if (window.supabase) await supabase.auth.signOut();
+    if (window.supabase) {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Erro no logout:", error.message);
+        alert("Erro ao sair: " + error.message);
+      }
+    }
+  } catch (e) {
+    console.error("Falha no logout", e);
   } finally {
+    // Força resetar estado e voltar pro login
+    setCurrentUser(null);
     await checkUser();
   }
 }
-
