@@ -1,7 +1,7 @@
 // =============================
 // reports.js - Gráficos
 // =============================
-import { S, qs, monthOf, monthsBack, fmtMoney } from "./state.js";
+import { S, qs, monthOf, monthsBack, fmtMoney } from "./js/state.js";
 
 let chartSaldo = null;
 let chartPie = null;
