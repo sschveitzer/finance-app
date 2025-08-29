@@ -102,7 +102,7 @@
         <textarea id="obs"></textarea>
         <div class="actions">
           <button type="button" class="btn-cancel" id="btnCancel">Cancelar</button>
-          <button type="submit" class="btn-save">Salvar</button>
+          <button type="submit" id="salvar" class="btn-save">Salvar</button>
         </div>
       </form>
     </div>
@@ -115,6 +115,7 @@
     import { checkUser, doLogout } from "./js/auth.js";
     import { loadAll } from "./js/storage.js";
     import { render } from "./js/ui.js";
+    import "./app.js";
 
     // Inicializa Supabase
     const { createClient } = supabase;
@@ -124,12 +125,12 @@
       { auth: { persistSession: true, autoRefreshToken: true } }
     );
 
-    // Aguarda restauração da sessão antes de checar
+    // Aguarda sessão antes de checar
     supabase.auth.getSession().then(() => {
       checkUser();
     });
 
-    // Conecta o botão sair ao logout
+    // Botão sair
     document.getElementById("btnLogout").addEventListener("click", async () => {
       await doLogout();
     });
