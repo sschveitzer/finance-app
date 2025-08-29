@@ -1,29 +1,36 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Login - FinanceAPP</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Finance App</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div class="container" style="max-width:400px;margin:80px auto;">
+    <h2 style="text-align:center;margin-bottom:20px;">Finance App</h2>
 
-  <div id="authScreen" class="card" style="max-width:420px;margin:40px auto;padding:16px">
-    <h3>Entrar</h3>
-    <form id="loginForm" onsubmit="return false;">
-      <input type="email" id="email" placeholder="Email" autocomplete="email" required>
+    <div class="card">
+      <h3 style="margin-bottom:12px;">Entrar</h3>
+
+      <input type="email" id="email" placeholder="E-mail" autocomplete="email" required>
       <input type="password" id="password" placeholder="Senha" autocomplete="current-password" required>
-      <div style="display:flex;gap:8px;margin-top:10px">
-        <button type="button" class="btn" id="btnLogin">Entrar</button>
-        <button type="button" class="btn secondary" id="btnSignup">Cadastrar</button>
+
+      <div style="margin-top:16px;display:flex;gap:10px;">
+        <button id="btnLogin" class="btn" style="flex:1;">Login</button>
+        <button id="btnSignup" class="btn secondary" style="flex:1;">Cadastrar</button>
       </div>
-    </form>
+    </div>
   </div>
 
+  <!-- Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <script type="module">
-    import { doLogin, doSignup } from "./auth.js";
 
+  <!-- Script de Login -->
+  <script type="module">
+    import { doLogin, doSignup } from "./js/auth.js";
+
+    // 🔑 Configura Supabase
     const { createClient } = supabase;
     window.supabase = createClient(
       "https://xkflckzrjnyadobgeerh.supabase.co",
@@ -31,21 +38,28 @@
       { auth: { persistSession: true, autoRefreshToken: true } }
     );
 
+    // Botão login
     document.getElementById("btnLogin").addEventListener("click", async () => {
       const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      await doLogin(email, password);
+      const senha = document.getElementById("password").value;
+      await doLogin(email, senha);
+
+      const { data } = await supabase.auth.getUser();
+      if (data.user) {
+        window.location.href = "dashboard.html";
+      }
     });
 
+    // Botão signup
     document.getElementById("btnSignup").addEventListener("click", async () => {
       const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      await doSignup(email, password);
+      const senha = document.getElementById("password").value;
+      await doSignup(email, senha);
     });
 
-    // já checa se tem sessão ativa
-    supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
+    // Mantém usuário logado
+    supabase.auth.getSession().then(({ data }) => {
+      if (data?.session?.user) {
         window.location.href = "dashboard.html";
       }
     });
