@@ -1,12 +1,11 @@
 window.onload = function () {
-  // ======== Inicializa Supabase ========
-  const client = window.supabase.createClient(
+  // Inicializa o Supabase (global no CDN)
+  const supabaseClient = window.supabase.createClient(
     "https://ppoufxezqmbxzflijmpx.supabase.co",
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwb3VmeGV6cW1ieHpmbGlqbXB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1NzY1MTgsImV4cCI6MjA3MjE1MjUxOH0.7wntt2EbXsb16Zob9F81XFUKognKHKn0jxP6UdfF_ZY"
   );
-  const supabase = client;
 
-  // ======== Estado global ========
+  // Estado global
   let S = {
     month: nowYMD().slice(0, 7),
     hide: false,
@@ -16,184 +15,98 @@ window.onload = function () {
     cats: []
   };
 
-  // ======== Helpers ========
-  function gid() { return crypto.randomUUID(); }
+  // ========= HELPERS =========
+  function gid() {
+    return crypto.randomUUID();
+  }
   function nowYMD() {
     const d = new Date();
-    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 10);
   }
-  function isIsoDate(s) { return /^\d{4}-\d{2}-\d{2}$/.test(s); }
-  function qs(sel) { return document.querySelector(sel); }
-  function qsa(sel) { return [...document.querySelectorAll(sel)]; }
+  function isIsoDate(s) {
+    return /^\d{4}-\d{2}-\d{2}$/.test(s);
+  }
   function fmtMoney(v) {
     const n = Number(v);
-    return isFinite(n) ? n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "R$ 0,00";
+    return isFinite(n)
+      ? n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+      : "R$ 0,00";
   }
-  function parseMoneyMasked(v) {
-    if (!v) return 0;
-    return Number(v.replace(/[R$\s.]/g, "").replace(",", ".")) || 0;
+  function parseMoneyMasked(str) {
+    if (!str) return 0;
+    return Number(str.replace(/\./g, "").replace(",", ".").replace(/[^\d.-]/g, "")) || 0;
   }
+  const qs = s => document.querySelector(s);
+  const qsa = s => [...document.querySelectorAll(s)];
 
-  // ======== Normalização de transação ========
-  function normalizeTx(t) {
-    if (!t) return null;
-    return {
-      id: t.id || gid(),
-      tipo: ["Receita", "Despesa", "Transferência"].includes(t.tipo) ? t.tipo : "Despesa",
-      categoria: (t.categoria && String(t.categoria).trim()) || "",
-      data: isIsoDate(t.data) ? t.data : nowYMD(),
-      valor: isFinite(Number(t.valor)) ? Number(t.valor) : 0,
-      descricao: (t.descricao || "").trim(),
-      obs: (t.obs || "").trim()
-    };
-  }
-
-  // ======== Load principal ========
+  // ========= LOAD DATA =========
   async function loadAll() {
     // Transações
-    const { data: tx, error: txError } = await supabase.from("transactions").select("*");
-    if (txError) { console.error("Erro ao carregar transações:", txError); S.tx = []; }
-    else { S.tx = tx.map(normalizeTx).filter(Boolean); }
+    const { data: tx, error: txError } = await supabaseClient
+      .from("transactions")
+      .select("*");
+    if (txError) {
+      console.error("Erro ao carregar transações:", txError);
+      S.tx = [];
+    } else {
+      S.tx = tx;
+    }
 
     // Categorias
-    const { data: cats, error: catsError } = await supabase.from("categories").select("*");
-    if (catsError) { console.error("Erro ao carregar categorias:", catsError); S.cats = []; }
-    else { S.cats = cats; }
+    const { data: cats, error: catsError } = await supabaseClient
+      .from("categories")
+      .select("*");
+    if (catsError) {
+      console.error("Erro ao carregar categorias:", catsError);
+      S.cats = [];
+    } else {
+      S.cats = cats;
+    }
 
-    // Preferências (pega apenas 1ª linha)
-    const { data: prefs, error: prefsError } = await supabase.from("preferences").select("*").limit(1).maybeSingle();
-    if (!prefsError && prefs) {
-      S.month = prefs.month || nowYMD().slice(0, 7);
-      S.hide = prefs.hide || false;
-      S.dark = prefs.dark || false;
+    // Preferências
+    const { data: prefs, error: prefsError } = await supabaseClient
+      .from("preferences")
+      .select("*")
+      .eq("id", 1)
+      .maybeSingle();
+    if (prefsError) {
+      console.error("Erro ao carregar preferências:", prefsError);
+    }
+    if (prefs) {
+      S.month = prefs.month;
+      S.hide = prefs.hide;
+      S.dark = prefs.dark;
     }
 
     render();
   }
-  // ======== Renderização ========
-  function render() {
-    renderRecentes();
-    renderLancamentos();
-    renderCategorias();
-    buildMonthSelect();
-    updateKpis();
-    renderCharts();
 
-    // Dark mode toggle
-    document.body.classList.toggle("dark", S.dark);
+  // ========= SAVE =========
+  async function saveTx(t) {
+    return await supabaseClient.from("transactions").upsert([t]);
+  }
+  async function deleteTx(id) {
+    return await supabaseClient.from("transactions").delete().eq("id", id);
+  }
+  async function saveCat(c) {
+    return await supabaseClient.from("categories").upsert([c]);
+  }
+  async function deleteCat(nome) {
+    return await supabaseClient.from("categories").delete().eq("nome", nome);
+  }
+  async function savePrefs() {
+    await supabaseClient.from("preferences").upsert([
+      { id: 1, month: S.month, hide: S.hide, dark: S.dark }
+    ]);
   }
 
-  // Lista últimos lançamentos
-  function renderRecentes() {
-    const ul = qs("#listaRecentes");
-    const list = [...S.tx].sort((a, b) => b.data.localeCompare(a.data)).slice(0, 10);
-    ul.innerHTML = "";
-    list.forEach(x => ul.append(itemTx(x, true)));
-  }
-
-  // Lista completa de lançamentos
-  function renderLancamentos() {
-    const ul = qs("#listaLanc");
-    let list = [...S.tx].sort((a, b) => b.data.localeCompare(a.data));
-
-    // filtro tipo
-    const tipo = qs("#filterTipo").value;
-    if (tipo !== "todos") list = list.filter(x => x.tipo === tipo);
-
-    // filtro busca
-    const search = qs("#searchLanc").value.toLowerCase();
-    if (search) {
-      list = list.filter(x =>
-        (x.descricao && x.descricao.toLowerCase().includes(search)) ||
-        (x.categoria && x.categoria.toLowerCase().includes(search))
-      );
-    }
-
-    ul.innerHTML = "";
-    list.forEach(x => ul.append(itemTx(x, false)));
-  }
-
-  // Monta item na lista
-  function itemTx(x, readOnly = false) {
-    const li = document.createElement("li");
-    li.className = "item";
-    const v = Number(x.valor) || 0;
-    const actions = readOnly ? "" : `
-      <button class="icon edit" title="Editar"><i class="ph ph-pencil-simple"></i></button>
-      <button class="icon del" title="Excluir"><i class="ph ph-trash"></i></button>
-    `;
-    li.innerHTML = `
-      <div class="left">
-        <div class="tag">${x.tipo}</div>
-        <div>
-          <div><strong>${x.descricao || "-"}</strong></div>
-          <div class="muted" style="font-size:12px">${x.categoria} • ${x.data}</div>
-        </div>
-      </div>
-      <div style="display:flex;gap:6px;align-items:center">
-        <div class="${S.hide ? "blurred" : ""}" style="font-weight:700">${fmtMoney(v)}</div>
-        ${actions}
-      </div>
-    `;
-    if (!readOnly) {
-      li.querySelector(".edit").onclick = () => openEdit(x.id);
-      li.querySelector(".del").onclick = () => delTx(x.id);
-    }
-    return li;
-  }
-
-  // Render categorias
-  function renderCategorias() {
-    const ul = qs("#listaCats");
-    ul.innerHTML = "";
-    S.cats.forEach(c => {
-      const li = document.createElement("li");
-      li.className = "item";
-      li.innerHTML = `
-        <div class="left"><strong>${c.nome}</strong></div>
-        <div style="display:flex;gap:6px;align-items:center">
-          <button class="icon del" title="Excluir"><i class="ph ph-trash"></i></button>
-        </div>
-      `;
-      li.querySelector(".del").onclick = async () => {
-        if (confirm(`Excluir categoria "${c.nome}"?`)) {
-          await supabase.from("categories").delete().eq("id", c.id);
-          loadAll();
-        }
-      };
-      ul.append(li);
-    });
-  }
-
-  // Constrói seletor de mês
-  function buildMonthSelect() {
-    const sel = qs("#monthSelect");
-    sel.innerHTML = "";
-    const d = new Date();
-    for (let i = 0; i < 12; i++) {
-      const cur = new Date(d.getFullYear(), d.getMonth() - i, 1);
-      const ym = cur.toISOString().slice(0, 7);
-      const opt = document.createElement("option");
-      opt.value = ym;
-      opt.textContent = cur.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
-      if (ym === S.month) opt.selected = true;
-      sel.append(opt);
-    }
-  }
-
-  // Alternar abas
+  // ========= UI =========
   function setTab(name) {
     qsa(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === name));
     qsa("section").forEach(s => s.classList.toggle("active", s.id === name));
   }
-
-  // ======== Eventos globais ========
-  qs("#filterTipo").onchange = () => renderLancamentos();
-  qs("#searchLanc").oninput = () => renderLancamentos();
-  qs("#monthSelect").onchange = e => { S.month = e.target.value; render(); };
-  qsa(".tab").forEach(btn => btn.onclick = () => setTab(btn.dataset.tab));
-  // ======== Modal Lançamentos ========
-  let modalTipo = "Despesa";
 
   function toggleModal(show, titleOverride) {
     const m = qs("#modalLanc");
@@ -213,8 +126,11 @@ window.onload = function () {
     }
   }
 
+  let modalTipo = "Despesa";
   function syncTipoTabs() {
-    qsa("#tipoTabs button").forEach(b => b.classList.toggle("active", b.dataset.type === modalTipo));
+    qsa("#tipoTabs button").forEach(b =>
+      b.classList.toggle("active", b.dataset.type === modalTipo)
+    );
     if (!S.editingId) {
       qs("#modalTitle").textContent = "Nova " + modalTipo;
     }
@@ -232,7 +148,7 @@ window.onload = function () {
     });
   }
 
-  // Adicionar ou atualizar lançamento
+  // ========= TRANSAÇÕES =========
   async function addOrUpdate() {
     const valor = parseMoneyMasked(qs("#mValorBig").value);
     const t = {
@@ -248,16 +164,59 @@ window.onload = function () {
     if (!t.descricao) return alert("Descrição obrigatória");
     if (!(t.valor > 0)) return alert("Informe o valor");
 
-    if (S.editingId) {
-      await supabase.from("transactions").upsert([t]);
-    } else {
-      await supabase.from("transactions").insert([t]);
-    }
+    await saveTx(t);
     loadAll();
     toggleModal(false);
   }
 
-  // Editar lançamento
+  async function delTx(id) {
+    if (confirm("Excluir lançamento?")) {
+      await deleteTx(id);
+      loadAll();
+    }
+  }
+
+  function itemTx(x, readOnly = false) {
+    const li = document.createElement("li");
+    li.className = "item";
+    const v = isFinite(Number(x.valor)) ? Number(x.valor) : 0;
+    const actions = readOnly
+      ? ""
+      : `
+        <button class="icon edit" title="Editar"><i class="ph ph-pencil-simple"></i></button>
+        <button class="icon del" title="Excluir"><i class="ph ph-trash"></i></button>`;
+    li.innerHTML = `
+      <div class="left">
+        <div class="tag">${x.tipo}</div>
+        <div>
+          <div><strong>${x.descricao || "-"}</strong></div>
+          <div class="muted" style="font-size:12px">${x.categoria} • ${x.data}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <div class="${S.hide ? "blurred" : ""}" style="font-weight:700">${fmtMoney(v)}</div>${actions}
+      </div>`;
+    if (!readOnly) {
+      li.querySelector(".edit").onclick = () => openEdit(x.id);
+      li.querySelector(".del").onclick = () => delTx(x.id);
+    }
+    return li;
+  }
+
+  function renderRecentes() {
+    const ul = qs("#listaRecentes");
+    const list = [...S.tx].sort((a, b) => b.data.localeCompare(a.data)).slice(0, 10);
+    ul.innerHTML = "";
+    list.forEach(x => ul.append(itemTx(x, true)));
+  }
+
+  function renderLancamentos() {
+    const ul = qs("#listaLanc");
+    const list = [...S.tx].sort((a, b) => b.data.localeCompare(a.data));
+    ul.innerHTML = "";
+    list.forEach(x => ul.append(itemTx(x, false)));
+  }
+
   function openEdit(id) {
     const x = S.tx.find(t => t.id === id);
     if (!x) return;
@@ -274,100 +233,179 @@ window.onload = function () {
     setTimeout(() => qs("#mValorBig").focus(), 0);
   }
 
-  // Excluir lançamento
-  async function delTx(id) {
-    if (confirm("Excluir lançamento?")) {
-      await supabase.from("transactions").delete().eq("id", id);
-      loadAll();
-    }
+  // ========= CATEGORIAS =========
+  function renderCategorias() {
+    const ul = qs("#listaCats");
+    ul.innerHTML = "";
+    S.cats.forEach(c => {
+      const li = document.createElement("li");
+      li.className = "item";
+      li.innerHTML = `
+        <div class="left"><strong>${c.nome}</strong></div>
+        <div><button class="icon del" title="Excluir"><i class="ph ph-trash"></i></button></div>`;
+      li.querySelector(".del").onclick = async () => {
+        if (confirm("Excluir categoria?")) {
+          await deleteCat(c.nome);
+          loadAll();
+        }
+      };
+      ul.append(li);
+    });
   }
 
-  // ======== Categorias ========
-  qs("#addCat").onclick = async () => {
-    const nome = qs("#newCatName").value.trim();
-    if (!nome) return;
-    await supabase.from("categories").insert([{ id: gid(), nome }]);
-    qs("#newCatName").value = "";
-    loadAll();
-  };
-
-  // ======== Preferências ========
-  qs("#toggleDark").onclick = async () => {
-    S.dark = !S.dark;
-
-    // aplica no DOM
-    document.body.classList.toggle("dark", S.dark);
-
-    await supabase.from("preferences").upsert([
-      { id: 1, month: S.month, hide: S.hide, dark: S.dark }
-    ]);
-  };
-
-  qs("#toggleHide").onchange = async e => {
-    S.hide = e.target.checked;
-
-    // re-renderiza lista para aplicar blur
-    render();
-
-    await supabase.from("preferences").upsert([
-      { id: 1, month: S.month, hide: S.hide, dark: S.dark }
-    ]);
-  };
-
-  // ======== KPIs ========
+  // ========= RELATÓRIOS =========
   function updateKpis() {
     const txMonth = S.tx.filter(x => x.data.startsWith(S.month));
-    const receitas = txMonth.filter(x => x.tipo === "Receita").reduce((a, b) => a + Number(b.valor), 0);
-    const despesas = txMonth.filter(x => x.tipo === "Despesa").reduce((a, b) => a + Number(b.valor), 0);
+    const receitas = txMonth
+      .filter(x => x.tipo === "Receita")
+      .reduce((a, b) => a + Number(b.valor), 0);
+    const despesas = txMonth
+      .filter(x => x.tipo === "Despesa")
+      .reduce((a, b) => a + Number(b.valor), 0);
     const saldo = receitas - despesas;
+
     qs("#kpiReceitas").textContent = fmtMoney(receitas);
     qs("#kpiDespesas").textContent = fmtMoney(despesas);
     qs("#kpiSaldo").textContent = fmtMoney(saldo);
   }
 
-  // ======== Gráficos ========
+  let chartSaldo, chartPie, chartFluxo;
   function renderCharts() {
-    const ctxSaldo = document.getElementById("chartSaldo");
-    const ctxPie = document.getElementById("chartPie");
-    const ctxFluxo = document.getElementById("chartFluxo");
-    if (!ctxSaldo || !ctxPie || !ctxFluxo) return;
-
-    const months = [];
-    const saldoData = [];
-    const d = new Date();
-    for (let i = 11; i >= 0; i--) {
-      const cur = new Date(d.getFullYear(), d.getMonth() - i, 1);
-      const ym = cur.toISOString().slice(0, 7);
-      const txs = S.tx.filter(x => x.data.startsWith(ym));
-      const receitas = txs.filter(x => x.tipo === "Receita").reduce((a, b) => a + Number(b.valor), 0);
-      const despesas = txs.filter(x => x.tipo === "Despesa").reduce((a, b) => a + Number(b.valor), 0);
-      months.push(cur.toLocaleDateString("pt-BR", { month: "short" }));
-      saldoData.push(receitas - despesas);
+    if (chartSaldo) chartSaldo.destroy();
+    const ctxSaldo = qs("#chartSaldo");
+    if (ctxSaldo) {
+      const months = [];
+      const saldoData = [];
+      const d = new Date();
+      for (let i = 11; i >= 0; i--) {
+        const cur = new Date(d.getFullYear(), d.getMonth() - i, 1);
+        const ym = cur.toISOString().slice(0, 7);
+        const txs = S.tx.filter(x => x.data.startsWith(ym));
+        const receitas = txs
+          .filter(x => x.tipo === "Receita")
+          .reduce((a, b) => a + Number(b.valor), 0);
+        const despesas = txs
+          .filter(x => x.tipo === "Despesa")
+          .reduce((a, b) => a + Number(b.valor), 0);
+        months.push(
+          cur.toLocaleDateString("pt-BR", { month: "short" })
+        );
+        saldoData.push(receitas - despesas);
+      }
+      chartSaldo = new Chart(ctxSaldo, {
+        type: "line",
+        data: { labels: months, datasets: [{ label: "Saldo", data: saldoData }] }
+      });
     }
 
-    new Chart(ctxSaldo, {
-      type: "line",
-      data: { labels: months, datasets: [{ label: "Saldo", data: saldoData }] }
-    });
+    if (chartPie) chartPie.destroy();
+    const ctxPie = qs("#chartPie");
+    if (ctxPie) {
+      const txMonth = S.tx.filter(x => x.data.startsWith(S.month));
+      const porCat = {};
+      txMonth
+        .filter(x => x.tipo === "Despesa")
+        .forEach(x => {
+          porCat[x.categoria] = (porCat[x.categoria] || 0) + Number(x.valor);
+        });
+      chartPie = new Chart(ctxPie, {
+        type: "pie",
+        data: { labels: Object.keys(porCat), datasets: [{ data: Object.values(porCat) }] }
+      });
+    }
 
-    const txMonth = S.tx.filter(x => x.data.startsWith(S.month));
-    const porCat = {};
-    txMonth.filter(x => x.tipo === "Despesa").forEach(x => {
-      porCat[x.categoria] = (porCat[x.categoria] || 0) + Number(x.valor);
-    });
-    new Chart(ctxPie, {
-      type: "pie",
-      data: { labels: Object.keys(porCat), datasets: [{ data: Object.values(porCat) }] }
-    });
+    if (chartFluxo) chartFluxo.destroy();
+    const ctxFluxo = qs("#chartFluxo");
+    if (ctxFluxo) {
+      const porMes = {};
+      S.tx.forEach(x => {
+        const ym = x.data.slice(0, 7);
+        porMes[ym] =
+          (porMes[ym] || 0) +
+          Number(x.valor) * (x.tipo === "Despesa" ? -1 : 1);
+      });
+      const labels = Object.keys(porMes).sort();
+      chartFluxo = new Chart(ctxFluxo, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{ label: "Fluxo", data: labels.map(l => porMes[l]) }]
+        }
+      });
+    }
   }
 
-  // ======== Eventos de botões ========
+  // ========= SELECTOR DE MESES =========
+  function buildMonthSelect() {
+    const sel = qs("#monthSelect");
+    sel.innerHTML = "";
+    const mesesDisponiveis = [...new Set(S.tx.map(x => x.data.slice(0, 7)))];
+    mesesDisponiveis.sort((a, b) => b.localeCompare(a));
+    mesesDisponiveis.forEach(m => {
+      const opt = document.createElement("option");
+      opt.value = m;
+      const [ano, mes] = m.split("-");
+      opt.textContent = new Date(ano, mes - 1, 1).toLocaleDateString("pt-BR", {
+        month: "long",
+        year: "numeric"
+      });
+      if (m === S.month) opt.selected = true;
+      sel.append(opt);
+    });
+    sel.onchange = () => {
+      S.month = sel.value;
+      savePrefs();
+      render();
+    };
+  }
+
+  // ========= RENDER PRINCIPAL =========
+  function render() {
+    document.body.classList.toggle("dark", S.dark);
+    qs("#toggleHide").checked = S.hide;
+    renderRecentes();
+    renderLancamentos();
+    renderCategorias();
+    buildMonthSelect();
+    updateKpis();
+    renderCharts();
+  }
+
+  // ========= EVENTOS =========
+  qsa(".tab").forEach(btn =>
+    btn.addEventListener("click", () => setTab(btn.dataset.tab))
+  );
   qs("#fab").onclick = () => toggleModal(true);
   qs("#btnNovo").onclick = () => toggleModal(true);
-  qs("#salvar").onclick = () => addOrUpdate();
-  qs("#cancelar").onclick = () => toggleModal(false);
   qs("#closeModal").onclick = () => toggleModal(false);
+  qs("#cancelar").onclick = () => toggleModal(false);
+  qs("#salvar").onclick = addOrUpdate;
+  qsa("#tipoTabs button").forEach(b =>
+    b.addEventListener("click", () => {
+      modalTipo = b.dataset.type;
+      syncTipoTabs();
+    })
+  );
 
-  // ======== Inicialização ========
+  qs("#addCat").onclick = async () => {
+    const nome = qs("#newCatName").value.trim();
+    if (!nome) return;
+    await saveCat({ nome });
+    qs("#newCatName").value = "";
+    loadAll();
+  };
+
+  qs("#toggleDark").onclick = async () => {
+    S.dark = !S.dark;
+    document.body.classList.toggle("dark", S.dark);
+    await savePrefs();
+  };
+  qs("#toggleHide").onchange = async e => {
+    S.hide = e.target.checked;
+    render();
+    await savePrefs();
+  };
+
+  // ========= START =========
   loadAll();
 };
