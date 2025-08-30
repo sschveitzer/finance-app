@@ -10,7 +10,9 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // ============================
 // Login e Logout
 // ============================
-async function login() {
+async function login(event) {
+  event.preventDefault(); // Evita o envio padrão do formulário e o recarregamento da página
+
   const email = document.getElementById("email").value;
   const senha = document.getElementById("senha").value;
 
@@ -24,7 +26,6 @@ async function login() {
   } else {
     checkUser();
   }
-}
 
 async function logout() {
   await supabase.auth.signOut();
@@ -295,3 +296,4 @@ async function checkUser() {
 }
 
 checkUser();
+
