@@ -1,92 +1,99 @@
 // =============================
-// state.js - Estado global
+// app.js - Inicialização do App
 // =============================
-
-export const S = {
-  transactions: [],      // lista de transações
-  categories: [],        // lista de categorias
-  month: new Date().toISOString().slice(0, 7),
-  hide: false,           // esconder valores
-  dark: false,           // tema escuro
-  filterTipo: "todos",   // filtro por tipo
-  search: "",            // filtro de busca
-  tab: "dashboard",      // aba ativa
-  editingId: null        // id em edição
-};
-
-let _currentUser = null;
-let _modalTipo = "Despesa";
+import { S, qs, setCurrentUser, getCurrentUser } from "./state.js";
+import { loadAll, saveTransaction } from "./storage.js";
+import { render } from "./ui.js";
 
 // =============================
-// Helpers utilitários
+// Inicialização
 // =============================
-export const qs = (s) => document.querySelector(s);
-export const qsa = (s) => Array.from(document.querySelectorAll(s));
-export const fmtMoney = (v) =>
-  isNaN(v)
-    ? "R$ 0,00"
-    : Number(v).toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      });
+async function init() {
+  let user = getCurrentUser();
 
-export const uid = () =>
-  crypto?.randomUUID
-    ? crypto.randomUUID()
-    : String(Date.now()) + Math.random().toString(16).slice(2);
-
-export const monthOf = (isoDate) => String(isoDate || "").slice(0, 7);
-
-export const parseCurrency = (str) => {
-  if (typeof str === "number") return str;
-  if (!str) return 0;
-  const s = String(str).replace(/[R$\s.]/g, "").replace(",", ".");
-  const n = parseFloat(s);
-  return isNaN(n) ? 0 : n;
-};
-
-export const monthsBack = (n = 12, from = new Date()) => {
-  const arr = [];
-  const d = new Date(from);
-  d.setDate(1);
-  for (let i = 0; i < n; i++) {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    arr.unshift(`${y}-${m}`);
-    d.setMonth(d.getMonth() - 1);
+  // 🔑 Garante que buscamos direto do Supabase
+  if (!user && window.supabase) {
+    const { data } = await supabase.auth.getUser();
+    user = data?.user || null;
+    setCurrentUser(user);
   }
-  return arr;
-};
+
+  if (!user) {
+    console.warn("Nenhum usuário logado. Redirecionando...");
+    window.location.href = "index.html";
+    return;
+  }
+
+  await loadAll();
+  render();
+  bindUI();
+}
 
 // =============================
-// Normalização de transações
+// Eventos da interface
 // =============================
-export const normalizeTx = (t) => {
-  if (!t) return null;
-  return {
-    id: t.id || uid(),
-    tipo: t.tipo || "Despesa",
-    categoria: t.categoria || "Geral",
-    data: t.data || new Date().toISOString().slice(0, 10),
-    descricao: t.descricao || "",
-    obs: t.obs || "",
-    valor:
-      typeof t.valor === "number" ? t.valor : parseCurrency(t.valor),
-  };
-};
+function bindUI() {
+  // Botão de adicionar transação (FAB)
+  const fab = qs("#btnAddTx");
+  if (fab) {
+    fab.onclick = () => {
+      openTxModal();
+    };
+  }
+
+  // Botão sair
+  const btnLogout = qs("#btnLogout");
+  if (btnLogout) {
+    btnLogout.onclick = async () => {
+      if (window.supabase) {
+        await supabase.auth.signOut();
+      }
+      setCurrentUser(null);
+      window.location.href = "index.html";
+    };
+  }
+
+  // Botão salvar transação no modal
+  const btnSave = qs("#btnSaveTx");
+  if (btnSave) {
+    btnSave.onclick = async () => {
+      const tx = {
+        descricao: qs("#txDescricao").value,
+        categoria: qs("#txCategoria").value,
+        data: qs("#txData").value,
+        tipo: document.querySelector("[name=tipoTx]:checked")?.value || "Despesa",
+        valor: parseFloat(qs("#txValor").value) || 0,
+        obs: qs("#txObs").value,
+      };
+      await saveTransaction(tx);
+      closeTxModal();
+      render();
+    };
+  }
+
+  // Botão cancelar modal
+  const btnCancel = qs("#btnCancelTx");
+  if (btnCancel) {
+    btnCancel.onclick = () => {
+      closeTxModal();
+    };
+  }
+}
 
 // =============================
-// Controle de usuário e modal
+// Controle do Modal
 // =============================
-export function setCurrentUser(u) {
-  _currentUser = u || null;
+function openTxModal() {
+  const modal = qs("#txModal");
+  if (modal) modal.style.display = "flex";
 }
-export function getCurrentUser() {
-  return _currentUser;
+
+function closeTxModal() {
+  const modal = qs("#txModal");
+  if (modal) modal.style.display = "none";
 }
-export function setModalTipo(t) {
-  _modalTipo = t;
-}
-export function getModalTipo() {
-  return _modalTipo;
-}
+
+// =============================
+// Start
+// =============================
+document.addEventListener("DOMContentLoaded", init);
