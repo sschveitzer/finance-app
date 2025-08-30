@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Finance Control</title>
-  <link rel="icon" href="data:," /> <!-- evita erro do favicon -->
+  <title>Finance App</title>
+  <link rel="icon" href="data:," /> <!-- evita erro favicon -->
 
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -14,26 +14,29 @@
 
   <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- CSS customizado -->
+  <link rel="stylesheet" href="css/style.css" />
 </head>
-<body class="bg-gray-900 text-white min-h-screen">
+<body class="text-white min-h-screen flex flex-col">
 
   <!-- Login -->
   <section id="auth-section" class="flex flex-col items-center justify-center h-screen">
-    <div class="bg-gray-800 p-6 rounded-2xl shadow-lg w-80">
-      <h1 class="text-2xl font-bold mb-4 text-center text-purple-400">Finance Control</h1>
-      <input id="email" type="email" placeholder="E-mail" class="w-full mb-2 p-2 rounded bg-gray-700 text-white" />
-      <input id="senha" type="password" placeholder="Senha" class="w-full mb-4 p-2 rounded bg-gray-700 text-white" />
-      <button onclick="login()" class="w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 rounded">Entrar</button>
+    <div class="card w-80">
+      <h1 class="text-2xl font-bold mb-4 text-center text-purple-400">Finance App</h1>
+      <input id="email" type="email" placeholder="E-mail" class="mb-2" />
+      <input id="senha" type="password" placeholder="Senha" class="mb-4" />
+      <button onclick="login()" class="btn btn-purple w-full">Entrar</button>
     </div>
   </section>
 
   <!-- App -->
-  <section id="app-section" class="hidden flex flex-col h-screen">
+  <section id="app-section" class="hidden flex flex-col flex-1">
     
     <!-- Topbar -->
-    <div class="flex justify-between items-center p-4 bg-gray-800 shadow">
-      <h2 class="text-xl font-bold text-purple-400">💰 Finance Control</h2>
-      <button onclick="logout()" class="text-red-400 hover:text-red-500 font-semibold">Sair</button>
+    <div class="topbar flex justify-between items-center">
+      <h2 class="text-xl text-purple-400">💰 Finance App</h2>
+      <button onclick="logout()" class="btn btn-red">Sair</button>
     </div>
 
     <!-- Navegação -->
@@ -50,8 +53,10 @@
 
       <!-- Dashboard -->
       <section id="dashboard">
-        <h3 class="text-lg font-semibold mb-2">Visão Geral</h3>
-        <p class="text-gray-400">Resumo rápido do seu financeiro.</p>
+        <div class="card">
+          <h3 class="text-lg font-semibold mb-2">Visão Geral</h3>
+          <p class="text-gray-400">Resumo rápido do seu financeiro.</p>
+        </div>
       </section>
 
       <!-- Extrato -->
@@ -59,21 +64,21 @@
         <h3 class="text-lg font-semibold mb-4">Extrato</h3>
         
         <!-- Form Entradas -->
-        <div class="bg-gray-800 p-4 rounded-xl mb-4">
+        <div class="card mb-4">
           <h4 class="font-bold mb-2 text-green-400">Adicionar Entrada</h4>
-          <input id="entrada-desc" type="text" placeholder="Descrição" class="w-full mb-2 p-2 rounded bg-gray-700 text-white" />
-          <input id="entrada-valor" type="number" placeholder="Valor" class="w-full mb-2 p-2 rounded bg-gray-700 text-white" />
-          <input id="entrada-cat" type="text" placeholder="Categoria (ex: Salário)" class="w-full mb-2 p-2 rounded bg-gray-700 text-white" />
-          <button onclick="adicionarEntrada()" class="w-full bg-green-500 hover:bg-green-600 py-2 rounded">Adicionar</button>
+          <input id="entrada-desc" type="text" placeholder="Descrição" class="mb-2" />
+          <input id="entrada-valor" type="number" placeholder="Valor" class="mb-2" />
+          <input id="entrada-cat" type="text" placeholder="Categoria (ex: Salário)" class="mb-2" />
+          <button onclick="adicionarEntrada()" class="btn btn-green w-full">Adicionar</button>
         </div>
 
         <!-- Form Saídas -->
-        <div class="bg-gray-800 p-4 rounded-xl mb-4">
+        <div class="card mb-4">
           <h4 class="font-bold mb-2 text-red-400">Adicionar Saída</h4>
-          <input id="saida-desc" type="text" placeholder="Descrição" class="w-full mb-2 p-2 rounded bg-gray-700 text-white" />
-          <input id="saida-valor" type="number" placeholder="Valor" class="w-full mb-2 p-2 rounded bg-gray-700 text-white" />
-          <input id="saida-cat" type="text" placeholder="Categoria (ex: Mercado)" class="w-full mb-2 p-2 rounded bg-gray-700 text-white" />
-          <button onclick="adicionarSaida()" class="w-full bg-red-500 hover:bg-red-600 py-2 rounded">Adicionar</button>
+          <input id="saida-desc" type="text" placeholder="Descrição" class="mb-2" />
+          <input id="saida-valor" type="number" placeholder="Valor" class="mb-2" />
+          <input id="saida-cat" type="text" placeholder="Categoria (ex: Mercado)" class="mb-2" />
+          <button onclick="adicionarSaida()" class="btn btn-red w-full">Adicionar</button>
         </div>
 
         <!-- Lista -->
@@ -82,16 +87,12 @@
 
       <!-- Relatórios -->
       <section id="relatorios" class="hidden space-y-6">
-        <h3 class="text-lg font-semibold">Relatórios</h3>
-
-        <!-- Gráfico de Barras -->
-        <div class="bg-gray-800 p-4 rounded-xl">
+        <div class="card">
           <h4 class="font-bold mb-2 text-purple-400">Entradas x Saídas (Mensal)</h4>
           <canvas id="grafico-relatorio" height="100"></canvas>
         </div>
 
-        <!-- Gráfico de Categorias -->
-        <div class="bg-gray-800 p-4 rounded-xl">
+        <div class="card">
           <h4 class="font-bold mb-2 text-purple-400">Gastos por Categoria</h4>
           <canvas id="grafico-categorias" height="100"></canvas>
         </div>
@@ -99,14 +100,18 @@
 
       <!-- Metas -->
       <section id="metas" class="hidden">
-        <h3 class="text-lg font-semibold">Metas</h3>
-        <p class="text-gray-400">Em breve: defina metas financeiras.</p>
+        <div class="card">
+          <h3 class="text-lg font-semibold">Metas</h3>
+          <p class="text-gray-400">Em breve: defina metas financeiras.</p>
+        </div>
       </section>
 
       <!-- Perfil -->
       <section id="perfil" class="hidden">
-        <h3 class="text-lg font-semibold">Perfil</h3>
-        <p class="text-gray-400">Em breve: dados da conta.</p>
+        <div class="card">
+          <h3 class="text-lg font-semibold">Perfil</h3>
+          <p class="text-gray-400">Em breve: dados da conta.</p>
+        </div>
       </section>
     </main>
   </section>
