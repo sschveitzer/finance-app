@@ -1,163 +1,113 @@
 // =============================
-// storage.js - Operações com Supabase
+// storage.js - Integração com Supabase
 // =============================
-import { S } from "./state.js";
-import { render } from "./ui.js";
+import { S, normalizeTx } from "./state.js";
 
-// =============================
-// Transações
-// =============================
-
-// Salvar ou atualizar transação
+// Salva ou atualiza uma transação
 export async function saveTransaction(tx) {
+  const user = S.currentUser;
+  if (!user) return;
+
+  const t = normalizeTx(tx);
   try {
-    const uid = S.currentUser?.id;
-    if (!uid) return;
-
-    const payload = {
-      ...tx,
-      user_id: uid
-    };
-
-    const { error } = await supabase
+    const { error, data } = await supabase
       .from("transactions")
-      .upsert(payload, { onConflict: "id" });
+      .upsert({ ...t, user_id: user.id });
 
     if (error) throw error;
-    await loadTransactions();
+
+    // Atualiza estado local
+    const idx = S.transactions.findIndex((x) => x.id === t.id);
+    if (idx >= 0) S.transactions[idx] = t;
+    else S.transactions.push(t);
   } catch (e) {
-    console.error("Erro ao salvar transação:", e.message);
+    console.error("Erro ao salvar transação", e);
     alert("Erro ao salvar transação: " + e.message);
   }
 }
 
-// Excluir transação
+// Exclui transação
 export async function deleteTransaction(id) {
-  try {
-    const uid = S.currentUser?.id;
-    if (!uid) return;
+  const user = S.currentUser;
+  if (!user) return;
 
+  try {
     const { error } = await supabase
       .from("transactions")
       .delete()
       .eq("id", id)
-      .eq("user_id", uid);
+      .eq("user_id", user.id);
 
     if (error) throw error;
-    await loadTransactions();
+
+    S.transactions = S.transactions.filter((x) => x.id !== id);
   } catch (e) {
-    console.error("Erro ao excluir transação:", e.message);
-    alert("Erro ao excluir transação: " + e.message);
+    console.error("Erro ao excluir transação", e);
+    alert("Erro ao excluir: " + e.message);
   }
 }
 
-// Carregar transações do usuário
-export async function loadTransactions() {
-  try {
-    const uid = S.currentUser?.id;
-    if (!uid) {
-      S.transactions = [];
-      render();
-      return;
-    }
+// Carrega todas as informações do usuário
+export async function loadAll() {
+  const user = S.currentUser;
+  if (!user) {
+    S.transactions = [];
+    S.categories = [];
+    return;
+  }
 
-    const { data, error } = await supabase
+  try {
+    // Carrega transações
+    const { data: txs, error: e1 } = await supabase
       .from("transactions")
       .select("*")
-      .eq("user_id", uid)
+      .eq("user_id", user.id)
       .order("data", { ascending: false });
 
-    if (error) throw error;
+    if (e1) throw e1;
+    S.transactions = (txs || []).map(normalizeTx);
 
-    S.transactions = data || [];
-    render();
-  } catch (e) {
-    console.error("Erro ao carregar transações:", e.message);
-    S.transactions = [];
-    render();
-  }
-}
-
-// =============================
-// Categorias
-// =============================
-
-// Carregar categorias
-export async function loadCategories() {
-  try {
-    const { data, error } = await supabase
+    // Carrega categorias
+    const { data: cats, error: e2 } = await supabase
       .from("categories")
       .select("*")
-      .order("nome");
+      .eq("user_id", user.id)
+      .order("id");
 
-    if (error) throw error;
+    if (e2) throw e2;
+    S.categories = cats || [];
 
-    S.categories = data || [];
-  } catch (e) {
-    console.error("Erro ao carregar categorias:", e.message);
-    S.categories = [];
-  }
-}
-
-// =============================
-// Preferências do usuário
-// =============================
-
-// Salvar preferências
-export async function savePrefs(S) {
-  try {
-    const uid = S.currentUser?.id;
-    if (!uid) return;
-
-    const prefs = {
-      user_id: uid,   // 🔑 agora é a chave primária
-      month: S.month,
-      hide: S.hide,
-      dark: S.dark
-    };
-
-    const { error } = await supabase
-      .from("prefs")
-      .upsert(prefs, { onConflict: "user_id" });
-
-    if (error) throw error;
-  } catch (e) {
-    console.error("Erro ao salvar preferências:", e.message);
-    alert("Erro ao salvar preferências: " + e.message);
-  }
-}
-
-// Carregar preferências
-export async function loadPrefs() {
-  try {
-    const uid = S.currentUser?.id;
-    if (!uid) return;
-
-    const { data, error } = await supabase
+    // Carrega preferências
+    const { data: prefs, error: e3 } = await supabase
       .from("prefs")
       .select("*")
-      .eq("user_id", uid)
+      .eq("user_id", user.id)
       .single();
 
-    if (error && error.code !== "PGRST116") throw error; // PGRST116 = not found
-
-    if (data) {
-      S.month = data.month ?? S.month;
-      S.hide  = data.hide ?? S.hide;
-      S.dark  = data.dark ?? S.dark;
+    if (!e3 && prefs) {
+      S.dark = prefs.dark ?? false;
+      S.hide = prefs.hide ?? false;
     }
   } catch (e) {
-    console.error("Erro ao carregar preferências:", e.message);
+    console.error("Erro ao carregar dados", e);
   }
 }
 
-// =============================
-// Carregar tudo (quando loga)
-// =============================
-export async function loadAll() {
-  await Promise.all([
-    loadTransactions(),
-    loadCategories(),
-    loadPrefs()
-  ]);
+// Salva preferências do usuário
+export async function savePrefs() {
+  const user = S.currentUser;
+  if (!user) return;
+
+  try {
+    const { error } = await supabase.from("prefs").upsert({
+      user_id: user.id,
+      dark: S.dark,
+      hide: S.hide,
+    });
+
+    if (error) throw error;
+  } catch (e) {
+    console.error("Erro ao salvar preferências", e);
+    alert("Erro ao salvar preferências: " + e.message);
+  }
 }
