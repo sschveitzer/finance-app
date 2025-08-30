@@ -1,5 +1,5 @@
 // =============================
-// storage.js - Integração com Supabase
+// storage.js - Persistência no Supabase
 // =============================
 import { S, normalizeTx } from "./state.js";
 
@@ -10,13 +10,12 @@ export async function saveTransaction(tx) {
 
   const t = normalizeTx(tx);
   try {
-    const { error, data } = await supabase
+    const { error } = await supabase
       .from("transactions")
       .upsert({ ...t, user_id: user.id });
 
     if (error) throw error;
 
-    // Atualiza estado local
     const idx = S.transactions.findIndex((x) => x.id === t.id);
     if (idx >= 0) S.transactions[idx] = t;
     else S.transactions.push(t);
@@ -26,7 +25,7 @@ export async function saveTransaction(tx) {
   }
 }
 
-// Exclui transação
+// Deleta uma transação
 export async function deleteTransaction(id) {
   const user = S.currentUser;
   if (!user) return;
@@ -40,53 +39,44 @@ export async function deleteTransaction(id) {
 
     if (error) throw error;
 
-    S.transactions = S.transactions.filter((x) => x.id !== id);
+    S.transactions = S.transactions.filter((t) => t.id !== id);
   } catch (e) {
-    console.error("Erro ao excluir transação", e);
-    alert("Erro ao excluir: " + e.message);
+    console.error("Erro ao deletar transação", e);
+    alert("Erro ao deletar transação: " + e.message);
   }
 }
 
-// Carrega todas as informações do usuário
+// Carrega todas as entidades (transações, categorias, prefs)
 export async function loadAll() {
   const user = S.currentUser;
-  if (!user) {
-    S.transactions = [];
-    S.categories = [];
-    return;
-  }
+  if (!user) return;
 
   try {
-    // Carrega transações
-    const { data: txs, error: e1 } = await supabase
+    // Transações
+    let { data: txs, error: err1 } = await supabase
       .from("transactions")
       .select("*")
       .eq("user_id", user.id)
       .order("data", { ascending: false });
+    if (!err1 && txs) S.transactions = txs;
 
-    if (e1) throw e1;
-    S.transactions = (txs || []).map(normalizeTx);
-
-    // Carrega categorias
-    const { data: cats, error: e2 } = await supabase
+    // Categorias
+    let { data: cats, error: err2 } = await supabase
       .from("categories")
       .select("*")
-      .eq("user_id", user.id)
-      .order("id");
+      .eq("user_id", user.id);
+    if (!err2 && cats) S.categories = cats;
 
-    if (e2) throw e2;
-    S.categories = cats || [];
-
-    // Carrega preferências
-    const { data: prefs, error: e3 } = await supabase
+    // Preferências
+    let { data: prefs, error: err3 } = await supabase
       .from("prefs")
       .select("*")
       .eq("user_id", user.id)
       .single();
 
-    if (!e3 && prefs) {
-      S.dark = prefs.dark ?? false;
-      S.hide = prefs.hide ?? false;
+    if (!err3 && prefs) {
+      S.hide = prefs.hide || false;
+      S.dark = prefs.dark || false;
     }
   } catch (e) {
     console.error("Erro ao carregar dados", e);
@@ -99,11 +89,13 @@ export async function savePrefs() {
   if (!user) return;
 
   try {
-    const { error } = await supabase.from("prefs").upsert({
-      user_id: user.id,
-      dark: S.dark,
-      hide: S.hide,
-    });
+    const { error } = await supabase
+      .from("prefs")
+      .upsert({
+        user_id: user.id,
+        hide: S.hide,
+        dark: S.dark
+      }, { onConflict: "user_id" });
 
     if (error) throw error;
   } catch (e) {
