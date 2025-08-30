@@ -98,7 +98,6 @@ window.onload = function () {
       { id: 1, month: S.month, hide: S.hide, dark: S.dark }
     ]);
   }
-
   // ========= UI =========
   function setTab(name) {
     qsa(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === name));
@@ -261,11 +260,19 @@ window.onload = function () {
       .reduce((a, b) => a + Number(b.valor), 0);
     const saldo = receitas - despesas;
 
-    qs("#kpiReceitas").textContent = fmtMoney(receitas);
-    qs("#kpiDespesas").textContent = fmtMoney(despesas);
-    qs("#kpiSaldo").textContent = fmtMoney(saldo);
-  }
+    const kpiReceitas = qs("#kpiReceitas");
+    const kpiDespesas = qs("#kpiDespesas");
+    const kpiSaldo = qs("#kpiSaldo");
 
+    kpiReceitas.textContent = fmtMoney(receitas);
+    kpiDespesas.textContent = fmtMoney(despesas);
+    kpiSaldo.textContent = fmtMoney(saldo);
+
+    // aplica blur se hide = true
+    [kpiReceitas, kpiDespesas, kpiSaldo].forEach(el => {
+      el.classList.toggle("blurred", S.hide);
+    });
+  }
   let chartSaldo, chartPie, chartFluxo;
   function renderCharts() {
     if (chartSaldo) chartSaldo.destroy();
@@ -406,4 +413,3 @@ window.onload = function () {
   // ========= START =========
   loadAll();
 };
-
