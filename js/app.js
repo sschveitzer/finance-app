@@ -10,9 +10,7 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // ============================
 // Login e Logout
 // ============================
-async function login(event) {
-  event.preventDefault(); // Evita o envio padrão do formulário e o recarregamento da página
-
+async function login() {
   const email = document.getElementById("email").value;
   const senha = document.getElementById("senha").value;
 
@@ -26,6 +24,7 @@ async function login(event) {
   } else {
     checkUser();
   }
+}
 
 async function logout() {
   await supabase.auth.signOut();
@@ -51,7 +50,7 @@ async function checkUser() {
     document.getElementById("app-section").classList.add("hidden");
     document.getElementById("footer-menu").classList.add("hidden");
   }
-} // <--- A chave de fechamento foi adicionada aqui
+}  // Faltava essa chave de fechamento aqui
 
 checkUser();
 
@@ -296,4 +295,3 @@ async function checkUser() {
 }
 
 checkUser();
-
