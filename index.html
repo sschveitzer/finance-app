@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <link rel="icon" href="data:,">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>FinanceAPP V3.7.10</title>
@@ -18,6 +19,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <link rel="icon" href="data:,">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>FinanceAPP V3.7.10</title>
@@ -87,7 +89,7 @@
 
     <section id="lancamentos">
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center"><h3>Lançamentos</h3><button class="btn" id="btnNovo">Novo lançamento</button></div>
+        <div style="display:flex;justify-content:space-between;align-items:center"><h3>Lançamentos</h3><button class="btn" id="btnAddLanc">Novo lançamento</button></div>
         <ul id="listaLanc" class="list" style="margin-top:12px"></ul>
       </div>
     </section>
@@ -95,7 +97,7 @@
     <section id="categorias">
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center"><h3>Categorias</h3>
-          <div style="display:flex;gap:8px"><input id="newCatName" placeholder="Nova categoria..."><button class="btn" id="addCat">Adicionar</button></div>
+          <div style="display:flex;gap:8px"><input id="newCatName" placeholder="Nova categoria..."><button class="btn" id="btnAddCat">Adicionar</button></div>
         </div>
         <ul id="listaCats" class="list" style="margin-top:12px"></ul>
       </div>
@@ -135,7 +137,7 @@
       </div>
       <div style="margin-top:10px"><label>Observações</label><textarea id="mObs" rows="3" placeholder="Opcional"></textarea></div>
       <div class="actions"><div class="left">Atalhos: <b>N</b> novo • <b>Enter</b> salvar • <b>Esc</b> cancelar</div>
-        <div class="right"><button class="btn-cancel" id="cancelar">Cancelar</button><button class="btn-save" id="salvar">Salvar</button></div>
+        <div class="right"><button class="btn-cancel" id="btnCancelLanc">Cancelar</button><button class="btn-save" id="btnSaveLanc">Salvar</button></div>
       </div>
     </div>
   </div>
