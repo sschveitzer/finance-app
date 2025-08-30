@@ -1,18 +1,26 @@
 // =============================
 // app.js - Inicialização do App
 // =============================
-import { S, qs } from "./state.js";
+import { S, qs, setCurrentUser, getCurrentUser } from "./state.js";
 import { loadAll, saveTransaction } from "./storage.js";
 import { render } from "./ui.js";
-import { getCurrentUser } from "./state.js";
 
 // =============================
 // Inicialização
 // =============================
 async function init() {
-  const user = getCurrentUser();
+  let user = getCurrentUser();
+
+  // 🔑 Garante que buscamos direto do Supabase
+  if (!user && window.supabase) {
+    const { data } = await supabase.auth.getUser();
+    user = data?.user || null;
+    setCurrentUser(user);
+  }
+
   if (!user) {
-    console.warn("Nenhum usuário logado.");
+    console.warn("Nenhum usuário logado. Redirecionando...");
+    window.location.href = "index.html";
     return;
   }
 
@@ -40,6 +48,7 @@ function bindUI() {
       if (window.supabase) {
         await supabase.auth.signOut();
       }
+      setCurrentUser(null);
       window.location.href = "index.html";
     };
   }
