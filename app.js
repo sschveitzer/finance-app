@@ -1,9 +1,9 @@
 // app.js FINAL COMPLETO
 
 // ====================== CONFIGURAÇÃO SUPABASE ======================
-const supabaseUrl = "https://YOUR-PROJECT.supabase.co"; // substitua pelo seu
-const supabaseKey = "YOUR-ANON-KEY"; // substitua pelo seu
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+const dbUrl = "https://YOUR-PROJECT.db.co"; // substitua pelo seu
+const dbKey = "YOUR-ANON-KEY"; // substitua pelo seu
+const db = window.db.createClient(supabaseUrl, supabaseKey);
 
 // ====================== ESTADO GLOBAL ======================
 let S = { month: nowYMD().slice(0,7), hide:false, dark:false, editingId:null, tx:[], cats:[] };
@@ -21,21 +21,21 @@ function shiftMonth(month,delta){const [y,m]=month.split('-').map(Number);const 
 
 // ====================== SUPABASE LOAD/SAVE ======================
 async function loadAll(){
-  const {data:tx} = await supabase.from("transactions").select("*");
-  const {data:cats} = await supabase.from("categories").select("*");
-  const {data:prefs} = await supabase.from("prefs").select("*");
+  const {data:tx} = await db.from("transactions").select("*");
+  const {data:cats} = await db.from("categories").select("*");
+  const {data:prefs} = await db.from("prefs").select("*");
   S.tx = tx||[]; S.cats = cats||[];
   if(prefs && prefs.length){ Object.assign(S, prefs[0]); }
 }
 async function saveTx(){
-  await supabase.from("transactions").upsert(S.tx);
+  await db.from("transactions").upsert(S.tx);
 }
 async function saveCats(){
   const cats = S.cats.map(c=>({nome:c.nome, cor:c.cor}));
-  await supabase.from("categories").upsert(cats);
+  await db.from("categories").upsert(cats);
 }
 async function savePrefs(){
-  await supabase.from("prefs").upsert([{id:'unique_pref', month:S.month, hide:S.hide, dark:S.dark}]);
+  await db.from("prefs").upsert([{id:'unique_pref', month:S.month, hide:S.hide, dark:S.dark}]);
 }
 
 // ====================== RENDER ======================
@@ -121,7 +121,7 @@ function addOrUpdate(){
 }
 async function delTx(id){
   if(!confirm('Excluir?')) return;
-  await supabase.from("transactions").delete().eq('id',id);
+  await db.from("transactions").delete().eq('id',id);
   S.tx=S.tx.filter(x=>x.id!==id);
   render();
 }
