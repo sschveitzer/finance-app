@@ -1,6 +1,6 @@
 // Configuração do Supabase
-const SUPABASE_URL = "https://SEU-PROJETO.supabase.co";
-const SUPABASE_KEY = "chave-anon-do-supabase";
+const SUPABASE_URL = "https://ucqxwhukiewwcbsafslf.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcXh3aHVraWV3d2Nic2Fmc2xmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1NTAxMzIsImV4cCI6MjA3MjEyNjEzMn0.vm6-UcuObZdNEmJ53RmhNr-_ajF4a6MuUuFbuexYEUI";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ==== Autenticação ====
@@ -134,3 +134,4 @@ function showSection(sectionId) {
 
 // Inicializar
 checkUser();
+
