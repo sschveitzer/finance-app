@@ -294,14 +294,24 @@ window.onload = function () {
   // ======== Preferências ========
   qs("#toggleDark").onclick = async () => {
     S.dark = !S.dark;
-    await supabase.from("preferences").upsert([{ id: 1, month: S.month, hide: S.hide, dark: S.dark }]);
-    render();
+
+    // aplica no DOM
+    document.body.classList.toggle("dark", S.dark);
+
+    await supabase.from("preferences").upsert([
+      { id: 1, month: S.month, hide: S.hide, dark: S.dark }
+    ]);
   };
 
   qs("#toggleHide").onchange = async e => {
     S.hide = e.target.checked;
-    await supabase.from("preferences").upsert([{ id: 1, month: S.month, hide: S.hide, dark: S.dark }]);
+
+    // re-renderiza lista para aplicar blur
     render();
+
+    await supabase.from("preferences").upsert([
+      { id: 1, month: S.month, hide: S.hide, dark: S.dark }
+    ]);
   };
 
   // ======== KPIs ========
