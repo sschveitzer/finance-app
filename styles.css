@@ -62,6 +62,17 @@ body {
   align-items: center;
   gap: 16px;
   padding: 14px 18px;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.nav-top {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .badge {
@@ -416,109 +427,53 @@ body.dark .typetabs button.active {
 }
 
 /* ========================= */
-/*  RESPONSIVIDADE ESPECÍFICA*/
+/*  MENU HAMBURGUER MOBILE   */
 /* ========================= */
+.hamburger {
+  display: none;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 20px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.hamburger:hover {
+  background: var(--chip);
+}
 
-/* iPhone 16 (até 1179px wide) */
 @media (max-width: 1179px) {
-  .nav .wrap {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 14px;
+  .hamburger {
+    display: block;
+    margin-left: auto;
   }
 
-  /* Badge sempre em cima */
-  .badge {
-    align-self: center;
-    width: auto;
-  }
-
-  /* Tabs em coluna */
+  /* Tabs escondidas inicialmente */
   .tabs {
-    width: 100%;
+    display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
+    width: 100%;
+    margin-top: 10px;
+
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
   }
+
+  /* Tabs quando abertas */
+  .tabs.show {
+    max-height: 500px;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
   .tab {
     width: 100%;
     text-align: center;
     padding: 12px;
-  }
-
-  /* Bloco da direita abaixo */
-  .right {
-    width: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: space-between;
-  }
-
-  .right select {
-    flex: 1;
-    min-width: 150px;
-  }
-
-  .right label {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    white-space: nowrap;
-  }
-
-  .right button {
-    flex: 0 0 auto;
-  }
-
-  .grid.cards {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .fab {
-    right: 18px;
-    bottom: 18px;
-    width: 54px;
-    height: 54px;
-    font-size: 26px;
-  }
-}
-
-/* iPad Pro 11" (até 834px wide) */
-@media (max-width: 834px) {
-  .tabs {
-    flex-direction: column;
-    gap: 8px;
-  }
-  .tab {
-    width: 100%;
-    text-align: center;
-    padding: 10px;
-  }
-  .grid.cards {
-    grid-template-columns: 1fr;
-  }
-  .kpi .value {
-    font-size: 20px;
-  }
-  .item {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .item .left {
-    margin-bottom: 6px;
-  }
-  .fab {
-    right: 14px;
-    bottom: 14px;
-    width: 50px;
-    height: 50px;
-    font-size: 22px;
-  }
-  .modal .content {
-    width: 100%;
-    max-width: none;
-    height: auto;
-    margin: 0;
-    border-radius: 0;
   }
 }
