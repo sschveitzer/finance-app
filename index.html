@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
+  <meta charset="UTF-8">
   <title>Login</title>
-  <script src="https://unpkg.com/@supabase/supabase-js"></script>
 </head>
 <body>
   <h2>Login</h2>
@@ -12,23 +12,9 @@
     <button type="submit">Entrar</button>
   </form>
 
-  <script>
-    const supabase = supabase.createClient("https://SEU-PROJETO.supabase.co", "PUBLIC-ANON-KEY");
-
-    document.getElementById("login-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-      if (error) {
-        alert("Erro: " + error.message);
-      } else {
-        window.location.href = "dashboard.html";
-      }
-    });
-  </script>
-<script src="scripts.js"></script>  
+  <!-- SDK do Supabase -->
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <!-- Seu script -->
+  <script src="scripts.js"></script>
 </body>
 </html>
