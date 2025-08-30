@@ -1,7 +1,7 @@
 // =============================
 // app.js - Fluxo principal
 // =============================
-import { addTransaction } from "./storage.js";
+import { saveTransaction } from "./storage.js";
 import { render } from "./ui.js";
 import { getCurrentUser } from "./state.js";
 
