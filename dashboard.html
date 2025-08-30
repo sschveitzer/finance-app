@@ -160,18 +160,31 @@
   <!-- Botão flutuante -->
   <button class="fab" id="fab" title="Nova despesa"><i class="ph ph-plus"></i></button>
 
+  <!-- JS: checagem de sessão -->
   <script>
-  const supabase = window.supabase.createClient(
-    "https://ppoufxezqmbxzflijmpx.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  );
+    const supabase = window.supabase.createClient(
+      "https://ppoufxezqmbxzflijmpx.supabase.co", // seu Project URL
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."   // sua anon key
+    );
 
-  supabase.auth.getSession().then(({ data }) => {
-    if (!data.session) {
-      window.location.href = "index.html"; // se não tiver logado → volta pro login
-    }
-  });
-</script>
+    // Se não estiver logado → volta pro login
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) {
+        window.location.href = "index.html";
+      }
+    });
+
+    // Logout
+    document.addEventListener("DOMContentLoaded", () => {
+      const btnLogout = document.getElementById("logoutBtn");
+      if (btnLogout) {
+        btnLogout.addEventListener("click", async () => {
+          await supabase.auth.signOut();
+          window.location.href = "index.html";
+        });
+      }
+    });
+  </script>
   
   <!-- JS -->
   <script src="scripts.js"></script>
