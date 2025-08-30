@@ -10,7 +10,9 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // ============================
 // Login e Logout
 // ============================
-async function login() {
+async function login(event) {
+  event.preventDefault(); // Impede o envio do formulário
+
   const email = document.getElementById("email").value;
   const senha = document.getElementById("senha").value;
 
@@ -20,6 +22,7 @@ async function login() {
   });
 
   if (error) {
+    console.error("Erro no login:", error); 
     alert("Erro no login: " + error.message);
   } else {
     checkUser();
@@ -295,3 +298,4 @@ async function checkUser() {
 }
 
 checkUser();
+
