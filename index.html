@@ -27,8 +27,8 @@
     
     <!-- Formulário de Login -->
     <form id="login-form" onsubmit="login(event)">
-      <input id="email" type="email" placeholder="E-mail" class="mb-2" required />
-      <input id="senha" type="password" placeholder="Senha" class="mb-4" required />
+      <input id="email" type="email" placeholder="E-mail" class="mb-2" required autocomplete="email" />
+      <input id="senha" type="password" placeholder="Senha" class="mb-4" required autocomplete="current-password" />
       <button type="submit" class="btn btn-purple w-full">Entrar</button>
     </form>
   </div>
