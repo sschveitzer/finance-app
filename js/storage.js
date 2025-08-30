@@ -9,9 +9,26 @@ export async function loadAll() {
   if (!user || !window.supabase) return;
   const uid = user.id || user.user?.id;
   try {
-    const { data: tx } = await supabase.from("transactions").select("*").eq("user_id", uid).order("data");
-    const { data: cats } = await supabase.from("categories").select("*").eq("user_id", uid).order("nome");
-    const { data: prefs } = await supabase.from("prefs").select("*").eq("user_id", uid);
+    const { data: tx, error: txErr } = await supabase
+      .from("transactions")
+      .select("*")
+      .eq("user_id", uid)
+      .order("data");
+
+    const { data: cats, error: catErr } = await supabase
+      .from("categories")
+      .select("*")
+      .eq("user_id", uid)
+      .order("nome");
+
+    const { data: prefs, error: prefErr } = await supabase
+      .from("prefs")
+      .select("*")
+      .eq("user_id", uid);
+
+    if (txErr) throw txErr;
+    if (catErr) throw catErr;
+    if (prefErr) throw prefErr;
 
     S.tx = (tx || []).map(normalizeTx).filter(Boolean);
     S.cats = cats && cats.length ? cats : [];
@@ -22,7 +39,7 @@ export async function loadAll() {
       S.dark = !!prefs[0].dark;
     }
   } catch (e) {
-    alert("Erro ao carregar dados do Supabase");
+    alert("Erro ao carregar dados do Supabase: " + e.message);
     console.error(e);
   }
 }
@@ -30,27 +47,33 @@ export async function loadAll() {
 // =============================
 // Transações
 // =============================
-export async function saveTransaction() {   // 🔄 antes saveTx
+export async function saveTransaction(tx) {
   const user = getCurrentUser();
   if (!user || !window.supabase) return;
   const uid = user.id || user.user?.id;
   try {
-    const withUser = S.tx.map((t) => ({ ...t, user_id: uid }));
-    const { error } = await supabase.from("transactions").upsert(withUser, { onConflict: "id" });
+    const withUser = { ...tx, user_id: uid };
+    const { error } = await supabase
+      .from("transactions")
+      .upsert(withUser, { onConflict: "id" });
     if (error) throw error;
   } catch (e) {
-    alert("Erro ao salvar lançamentos");
+    alert("Erro ao salvar transação: " + e.message);
     console.error(e);
   }
 }
 
-export async function deleteTransaction(id) {  // 🔄 antes deleteTx
+export async function deleteTransaction(id) {
   const user = getCurrentUser();
   if (!user || !window.supabase) return;
   try {
-    await supabase.from("transactions").delete().eq("id", id);
+    const { error } = await supabase
+      .from("transactions")
+      .delete()
+      .eq("id", id);
+    if (error) throw error;
   } catch (e) {
-    alert("Erro ao excluir lançamento");
+    alert("Erro ao excluir lançamento: " + e.message);
     console.error(e);
   }
 }
@@ -58,16 +81,18 @@ export async function deleteTransaction(id) {  // 🔄 antes deleteTx
 // =============================
 // Categorias
 // =============================
-export async function saveCategory() {   // 🔄 antes saveCats
+export async function saveCategory(cat) {
   const user = getCurrentUser();
   if (!user || !window.supabase) return;
   const uid = user.id || user.user?.id;
   try {
-    const withUser = S.cats.map((c) => ({ ...c, user_id: uid }));
-    const { error } = await supabase.from("categories").upsert(withUser, { onConflict: "id" });
+    const withUser = { ...cat, user_id: uid };
+    const { error } = await supabase
+      .from("categories")
+      .upsert(withUser, { onConflict: "id" });
     if (error) throw error;
   } catch (e) {
-    alert("Erro ao salvar categorias");
+    alert("Erro ao salvar categoria: " + e.message);
     console.error(e);
   }
 }
@@ -80,11 +105,14 @@ export async function savePrefs() {
   if (!user || !window.supabase) return;
   const uid = user.id || user.user?.id;
   try {
-    const prefs = { id: uid, user_id: uid, month: S.month, hide: S.hide, dark: S.dark };
-    const { error } = await supabase.from("prefs").upsert(prefs, { onConflict: "id" });
+    // removi `id: uid` pq pode não existir essa coluna
+    const prefs = { user_id: uid, month: S.month, hide: S.hide, dark: S.dark };
+    const { error } = await supabase
+      .from("prefs")
+      .upsert(prefs, { onConflict: "user_id" });
     if (error) throw error;
   } catch (e) {
-    alert("Erro ao salvar preferências");
+    alert("Erro ao salvar preferências: " + e.message);
     console.error(e);
   }
 }
