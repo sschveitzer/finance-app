@@ -1,6 +1,6 @@
 window.onload = function() {
   // O objeto 'supabase' já está globalmente disponível após o carregamento do CDN
-  const supabase = supabase.createClient(
+  const db = supabase.createClient(
     'https://ppoufxezqmbxzflijmpx.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwb3VmeGV6cW1ieHpmbGlqbXB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1NzY1MTgsImV4cCI6MjA3MjE1MjUxOH0.7wntt2EbXsb16Zob9F81XFUKognKHKn0jxP6UdfF_ZY'
   );
@@ -27,15 +27,15 @@ window.onload = function() {
   // ======== Funções de acesso ao Supabase ========
   async function loadAll() {
     // Carregar transações
-    const { data: tx, error: txError } = await supabase.from('transactions').select('*');
+    const { data: tx, error: txError } = await db.from('transactions').select('*');
     S.tx = txError ? [] : tx.map(normalizeTx).filter(Boolean);
 
     // Carregar categorias
-    const { data: cats, error: catsError } = await supabase.from('categories').select('*');
+    const { data: cats, error: catsError } = await db.from('categories').select('*');
     S.cats = catsError ? [] : cats;
 
     // Carregar preferências
-    const { data: prefs, error: prefsError } = await supabase.from('preferences').select('*').single();
+    const { data: prefs, error: prefsError } = await db.from('preferences').select('*').single();
     if (prefsError) {
       S.month = nowYMD().slice(0, 7);
       S.hide = false;
@@ -59,17 +59,17 @@ window.onload = function() {
   }
 
   async function saveTxToSupabase() {
-    const { error } = await supabase.from('transactions').upsert(S.tx);
+    const { error } = await db.from('transactions').upsert(S.tx);
     if (error) console.error('Erro ao salvar transações:', error);
   }
 
   async function saveCatsToSupabase() {
-    const { error } = await supabase.from('categories').upsert(S.cats);
+    const { error } = await db.from('categories').upsert(S.cats);
     if (error) console.error('Erro ao salvar categorias:', error);
   }
 
   async function savePrefsToSupabase() {
-    const { error } = await supabase.from('preferences').upsert([{ month: S.month, hide: S.hide, dark: S.dark }]);
+    const { error } = await db.from('preferences').upsert([{ month: S.month, hide: S.hide, dark: S.dark }]);
     if (error) console.error('Erro ao salvar preferências:', error);
   }
 
@@ -155,9 +155,9 @@ window.onload = function() {
     if (!(t.valor > 0)) { alert('Informe o valor'); return }
 
     if (S.editingId) {
-      await supabase.from('transactions').upsert([t]);
+      await db.from('transactions').upsert([t]);
     } else {
-      await supabase.from('transactions').insert([t]);
+      await db.from('transactions').insert([t]);
     }
 
     loadAll();
@@ -166,7 +166,7 @@ window.onload = function() {
 
   async function delTx(id) {
     if (confirm('Excluir lançamento?')) {
-      await supabase.from('transactions').delete().match({ id });
+      await db.from('transactions').delete().match({ id });
       loadAll();
     }
   }
