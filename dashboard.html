@@ -1,154 +1,176 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>FinanceApp - Dashboard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Finance App</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:,">
 </head>
 <body>
-
   <!-- 🔹 Navbar -->
-  <div class="nav">
+  <nav class="nav">
     <div class="wrap">
-      <div class="badge">FinanceApp</div>
+      <div class="badge">Finance App</div>
       <div class="tabs">
-        <div class="tab active" data-target="home">Início</div>
-        <div class="tab" data-target="relatorios">Relatórios</div>
-        <div class="tab" data-target="categorias">Categorias</div>
+        <button class="tab active" data-section="home">Visão Geral</button>
+        <button class="tab" data-section="reports">Relatórios</button>
+        <button class="tab" data-section="transactions">Lançamentos</button>
       </div>
       <div class="right">
         <button id="btnLogout" class="btn secondary">Sair</button>
       </div>
     </div>
-  </div>
+  </nav>
 
-  <!-- 🔹 Conteúdo -->
+  <!-- 🔹 Container -->
   <div class="container">
+    <!-- Seções -->
     <section id="home" class="active">
+      <div class="grid cards">
+        <div class="card kpi earn">
+          <div class="value" id="kpiReceitas">0</div>
+          <div class="muted">Receitas</div>
+        </div>
+        <div class="card kpi exp">
+          <div class="value" id="kpiDespesas">0</div>
+          <div class="muted">Despesas</div>
+        </div>
+        <div class="card kpi balance">
+          <div class="value" id="kpiSaldo">0</div>
+          <div class="muted">Saldo</div>
+        </div>
+      </div>
+
       <div class="grid two">
         <div class="card">
+          <h3>Últimos lançamentos</h3>
+          <ul class="list" id="ultimosLancamentos"></ul>
+        </div>
+        <div class="card">
           <h3>Resumo</h3>
-          <div id="kpis"></div>
+          <canvas id="chartResumo"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section id="reports">
+      <div class="grid two">
+        <div class="card">
+          <h3>Top Categorias (12 meses)</h3>
+          <canvas id="chartCategorias"></canvas>
         </div>
         <div class="card">
           <h3>Saldo acumulado (12 meses)</h3>
           <canvas id="chartSaldo"></canvas>
         </div>
       </div>
-      <div class="grid cards">
-        <div class="card">
-          <h3>Últimos lançamentos</h3>
-          <ul id="ultimosLanc" class="list"></ul>
-        </div>
-        <div class="card">
-          <h3>Top categorias (12 meses)</h3>
-          <canvas id="chartCategorias"></canvas>
-        </div>
-        <div class="card">
-          <h3>Distribuição mensal</h3>
-          <canvas id="chartMensal"></canvas>
-        </div>
-      </div>
     </section>
 
-    <section id="relatorios">
+    <section id="transactions">
       <div class="card">
-        <h3>Relatórios</h3>
-        <p>Aqui você pode gerar relatórios personalizados.</p>
-      </div>
-    </section>
-
-    <section id="categorias">
-      <div class="card">
-        <h3>Categorias</h3>
-        <ul id="listaCats" class="list"></ul>
+        <h3>Todos os lançamentos</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Categoria</th>
+              <th>Descrição</th>
+              <th>Valor</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tabelaLancamentos"></tbody>
+        </table>
       </div>
     </section>
   </div>
 
-  <!-- 🔹 Botão para novo lançamento -->
-  <button class="fab" id="btnAdd">+</button>
-
-  <!-- 🔹 Modal -->
-  <div class="modal" id="modalLanc">
+  <!-- 🔹 Modal Novo Lançamento -->
+  <button id="btnNovaTransacao" class="fab">+</button>
+  <div id="modalLancamento" class="modal">
     <div class="content">
       <div class="title">
-        <h3 id="modalTitle">Novo Lançamento</h3>
-        <button class="icon" id="btnCloseModal">✕</button>
+        <h3>Novo Lançamento</h3>
+        <button id="btnFecharModal" class="icon">✕</button>
       </div>
-      <form id="formLanc">
-        <div class="typetabs">
-          <button type="button" data-type="Receita">Receita</button>
-          <button type="button" data-type="Despesa">Despesa</button>
-          <button type="button" data-type="Transferência">Transferência</button>
+      <input type="number" id="valor" class="amount" placeholder="0,00">
+
+      <div class="typetabs">
+        <button data-type="Receita" class="active">Receita</button>
+        <button data-type="Despesa">Despesa</button>
+        <button data-type="Transferência">Transferência</button>
+      </div>
+
+      <div class="row3">
+        <div>
+          <label>Categoria</label>
+          <select id="categoria"></select>
         </div>
-        <input type="number" id="mValorBig" class="amount" placeholder="0,00" required>
-        <div class="row3">
-          <div>
-            <label for="mCategoria">Categoria</label>
-            <select id="mCategoria"></select>
-          </div>
-          <div>
-            <label for="mData">Data</label>
-            <input type="date" id="mData" required>
-          </div>
-          <div>
-            <label for="mDesc">Descrição</label>
-            <input type="text" id="mDesc" placeholder="Ex: Aluguel">
-          </div>
+        <div>
+          <label>Data</label>
+          <input type="date" id="data">
         </div>
-        <label for="mObs">Observações</label>
-        <textarea id="mObs"></textarea>
-        <div class="actions">
-          <button type="button" class="btn-cancel" id="btnCancel">Cancelar</button>
-          <button type="submit" id="salvar" class="btn-save">Salvar</button>
+        <div>
+          <label>Descrição</label>
+          <input type="text" id="descricao" placeholder="Ex: Aluguel, Salário">
         </div>
-      </form>
+      </div>
+
+      <label>Observações</label>
+      <textarea id="obs" rows="2"></textarea>
+
+      <div class="actions">
+        <button id="btnSalvar" class="btn-save">Salvar</button>
+        <button id="btnCancelar" class="btn-cancel">Cancelar</button>
+      </div>
     </div>
   </div>
-<!-- 🔹 Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-<script type="module">
-  import { checkUser, doLogout } from "./js/auth.js";
 
-  // Inicializa Supabase
-  const { createClient } = supabase;
-  window.supabase = createClient(
-    "https://xkflckzrjnyadobgeerh.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhrZmxja3pyam55YWRvYmdlZXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0NjQ2NzksImV4cCI6MjA3MjA0MDY3OX0.Me2Ch8t2w1id4VRRncRoCA2PH_OTFHD_Iy7mBBS0SNg",
-    { auth: { persistSession: true, autoRefreshToken: true } }
-  );
+  <!-- 🔹 Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script type="module">
+    import { checkUser, doLogout } from "./js/auth.js";
+    import { loadAll } from "./js/storage.js";
+    import { render } from "./js/ui.js";
 
-  // Aguarda sessão antes de checar
-  supabase.auth.getSession().then(() => {
-    checkUser();
-  });
+    // Inicializa Supabase
+    const { createClient } = supabase;
+    window.supabase = createClient(
+      "https://xkflckzrjnyadobgeerh.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhrZmxja3pyam55YWRvYmdlZXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0NjQ2NzksImV4cCI6MjA3MjA0MDY3OX0.Me2Ch8t2w1id4VRRncRoCA2PH_OTFHD_Iy7mBBS0SNg",
+      { auth: { persistSession: true, autoRefreshToken: true } }
+    );
 
-  // Botão sair
-  document.getElementById("btnLogout").addEventListener("click", async () => {
-    await doLogout();
-    window.location.href = "index.html";
-  });
+    // Checa sessão e carrega dados
+    supabase.auth.getSession().then(({ data }) => {
+      if (data?.session?.user) {
+        checkUser();
+        loadAll().then(() => render());
+      } else {
+        window.location.href = "index.html";
+      }
+    });
 
-  // Monitora mudanças na sessão
-  supabase.auth.onAuthStateChange((_event, session) => {
-    if (session?.user) {
-      checkUser();
-    } else {
+    // Botão sair
+    document.getElementById("btnLogout").addEventListener("click", async () => {
+      await doLogout();
       window.location.href = "index.html";
-    }
-  });
-</script>
+    });
 
-<!-- Carrega app.js -->
-<script type="module" src="./js/app.js"></script>
- 
+    // Monitora mudanças na sessão
+    supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        checkUser();
+        loadAll().then(() => render());
+      } else {
+        window.location.href = "index.html";
+      }
+    });
+  </script>
+
+  <!-- Lógica principal -->
+  <script type="module" src="./js/app.js"></script>
 </body>
 </html>
-
-
-
-
-
