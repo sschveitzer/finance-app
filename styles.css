@@ -423,29 +423,51 @@ body.dark .typetabs button.active {
 @media (max-width: 1179px) {
   .nav .wrap {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+    align-items: stretch;
+    gap: 14px;
   }
 
+  /* Badge sempre em cima */
+  .badge {
+    align-self: center;
+    width: auto;
+  }
+
+  /* Tabs em coluna */
   .tabs {
     width: 100%;
-    flex-wrap: wrap;
     flex-direction: column;
+    gap: 10px;
   }
-
   .tab {
-    flex: 1 1 100%;
+    width: 100%;
     text-align: center;
     padding: 12px;
   }
 
+  /* Bloco da direita abaixo */
   .right {
     width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
     justify-content: space-between;
   }
 
-  select {
-    width: 100%;
+  .right select {
+    flex: 1;
+    min-width: 150px;
+  }
+
+  .right label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+
+  .right button {
+    flex: 0 0 auto;
   }
 
   .grid.cards {
