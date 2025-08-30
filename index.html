@@ -2,70 +2,81 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>App Financeiro</title>
-
-  <!-- ✅ Favicon vazio (remove erro 404 no console) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finance App</title>
   <link rel="icon" href="data:," />
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="css/style.css" />
-
-  <!-- Supabase e Chart.js -->
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- Seu código -->
   <script defer src="js/app.js"></script>
 </head>
-<body>
-  <header>
-    <h1>💰 App Financeiro da Família</h1>
+<body class="bg-gradient-to-b from-[#1a1a1a] to-black text-white font-sans min-h-screen flex flex-col">
+
+  <!-- HEADER -->
+  <header class="bg-black/80 backdrop-blur-md px-6 py-4 flex justify-between items-center border-b border-gray-800">
+    <h1 class="text-xl font-bold text-purple-400">💸 FamíliaBank</h1>
+    <button onclick="logout()" class="text-sm text-gray-400 hover:text-white">Sair</button>
   </header>
 
-  <!-- Login -->
-  <section id="auth">
-    <h2>Login</h2>
-    <input id="email" type="email" placeholder="Email" />
-    <input id="password" type="password" placeholder="Senha" />
-    <button onclick="login()">Entrar</button>
-    <!-- 🚫 Botão de cadastro removido -->
-  </section>
+  <!-- LOGIN -->
+  <main id="auth-section" class="flex-1 flex flex-col items-center justify-center gap-6 p-6">
+    <h2 class="text-2xl font-bold text-purple-300">Entrar</h2>
+    <input id="email" type="email" placeholder="E-mail"
+      class="w-72 p-3 rounded-xl bg-gray-900 text-white border border-gray-700 focus:border-purple-500 outline-none" />
+    <input id="password" type="password" placeholder="Senha"
+      class="w-72 p-3 rounded-xl bg-gray-900 text-white border border-gray-700 focus:border-purple-500 outline-none" />
+    <button onclick="login()" class="bg-purple-600 hover:bg-purple-700 px-6 py-3 rounded-full font-semibold shadow-lg">Entrar</button>
+  </main>
 
-  <!-- Aplicação -->
-  <section id="app" style="display:none;">
-    <nav>
-      <button onclick="showSection('entradas')">Entradas</button>
-      <button onclick="showSection('saidas')">Saídas</button>
-      <button onclick="showSection('relatorio')">Relatório</button>
-      <button onclick="logout()">Sair</button>
-    </nav>
+  <!-- DASHBOARD -->
+  <main id="app-section" class="hidden flex-1 flex-col p-4 gap-6">
 
-    <!-- Entradas -->
-    <div id="entradas" class="page">
-      <h2>Lançar Entrada</h2>
-      <input id="descEntrada" placeholder="Descrição" />
-      <input id="valorEntrada" type="number" placeholder="Valor" />
-      <button onclick="addEntrada()">Salvar Entrada</button>
-      <h3>Minhas Entradas</h3>
-      <ul id="listaEntradas"></ul>
-    </div>
+    <!-- SALDO -->
+    <section class="card bg-gradient-to-br from-purple-600 to-purple-800 text-white rounded-2xl p-6 shadow-xl">
+      <p class="text-sm text-purple-200">Saldo Atual</p>
+      <p id="saldo" class="text-4xl font-bold mt-2">R$ 0,00</p>
+    </section>
 
-    <!-- Saídas -->
-    <div id="saidas" class="page" style="display:none;">
-      <h2>Lançar Saída</h2>
-      <input id="descSaida" placeholder="Descrição" />
-      <input id="valorSaida" type="number" placeholder="Valor" />
-      <button onclick="addSaida()">Salvar Saída</button>
-      <h3>Minhas Saídas</h3>
-      <ul id="listaSaidas"></ul>
-    </div>
+    <!-- ENTRADAS / SAÍDAS -->
+    <section class="grid grid-cols-2 gap-4">
+      <div class="bg-gray-900 rounded-2xl p-5 shadow-lg">
+        <p class="text-sm text-green-400">Entradas</p>
+        <p id="total-entradas" class="text-2xl font-bold mt-2">R$ 0,00</p>
+      </div>
+      <div class="bg-gray-900 rounded-2xl p-5 shadow-lg">
+        <p class="text-sm text-red-400">Saídas</p>
+        <p id="total-saidas" class="text-2xl font-bold mt-2">R$ 0,00</p>
+      </div>
+    </section>
 
-    <!-- Relatório -->
-    <div id="relatorio" class="page" style="display:none;">
-      <h2>Relatório</h2>
-      <p id="saldo"></p>
+    <!-- GRÁFICO -->
+    <section class="bg-gray-900 rounded-2xl p-5 shadow-lg">
+      <h3 class="text-lg font-semibold mb-4">Relatório</h3>
       <canvas id="grafico"></canvas>
-    </div>
-  </section>
+    </section>
+
+    <!-- FORM ENTRADA -->
+    <section class="bg-gray-900 rounded-2xl p-5 shadow-lg">
+      <h3 class="text-lg font-semibold mb-4 text-green-400">Nova Entrada</h3>
+      <input id="entrada-desc" placeholder="Descrição" class="w-full p-3 mb-3 rounded-xl bg-black text-white border border-gray-700 outline-none" />
+      <input id="entrada-valor" type="number" placeholder="Valor" class="w-full p-3 mb-3 rounded-xl bg-black text-white border border-gray-700 outline-none" />
+      <button onclick="addEntrada()" class="bg-green-600 hover:bg-green-700 w-full py-3 rounded-full font-semibold">Adicionar Entrada</button>
+    </section>
+
+    <!-- FORM SAÍDA -->
+    <section class="bg-gray-900 rounded-2xl p-5 shadow-lg">
+      <h3 class="text-lg font-semibold mb-4 text-red-400">Nova Saída</h3>
+      <input id="saida-desc" placeholder="Descrição" class="w-full p-3 mb-3 rounded-xl bg-black text-white border border-gray-700 outline-none" />
+      <input id="saida-valor" type="number" placeholder="Valor" class="w-full p-3 mb-3 rounded-xl bg-black text-white border border-gray-700 outline-none" />
+      <button onclick="addSaida()" class="bg-red-600 hover:bg-red-700 w-full py-3 rounded-full font-semibold">Adicionar Saída</button>
+    </section>
+  </main>
+
+  <!-- FOOTER MENU -->
+  <footer id="footer-menu" class="hidden bg-black/90 backdrop-blur-md border-t border-gray-800 p-3 flex justify-around text-gray-400">
+    <button onclick="showDashboard()" class="hover:text-white">🏠</button>
+    <button onclick="document.querySelector('#entrada-desc').focus()" class="hover:text-green-400">➕</button>
+    <button onclick="loadRelatorio()" class="hover:text-purple-400">📊</button>
+  </footer>
 </body>
 </html>
