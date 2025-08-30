@@ -181,6 +181,7 @@ button {
   font-size: 24px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
+
 /* Modal */
 .modal {
   position: fixed;
@@ -213,7 +214,6 @@ button {
   font-size: 20px;
   cursor: pointer;
 }
-
 /* ---------- AJUSTES MOBILE ---------- */
 @media (max-width: 768px) {
 
@@ -227,9 +227,6 @@ button {
   .nav .badge {
     font-size: 14px;
     padding: 6px 10px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
   }
 
   .hamburger {
@@ -287,9 +284,9 @@ button {
     font-size: 18px;
     font-weight: 600;
   }
-  .kpi.earn .icon { color: #16a34a; }    /* verde */
-  .kpi.exp .icon { color: #dc2626; }     /* vermelho */
-  .kpi.balance .icon { color: #7c3aed; } /* roxo */
+  .kpi.earn .icon { color: #16a34a; }
+  .kpi.exp .icon { color: #dc2626; }
+  .kpi.balance .icon { color: #7c3aed; }
 
   /* Gráficos em coluna */
   .grid.two {
@@ -302,7 +299,8 @@ button {
     right: 20px;
   }
 }
-/* ---------- AJUSTES TABLET (iPad 11) ---------- */
+
+/* ---------- AJUSTES TABLET ---------- */
 @media (min-width: 769px) and (max-width: 1024px) {
 
   .nav .wrap {
@@ -325,9 +323,9 @@ button {
     flex-direction: row;
     gap: 6px;
     width: auto;
-    max-height: none;
-    opacity: 1;
-    transform: none;
+    max-height: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
   .tab {
     padding: 10px 14px;
@@ -339,7 +337,7 @@ button {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  /* Gráficos: mantém lado a lado se couber */
+  /* Gráficos: mantém lado a lado */
   .grid.two {
     grid-template-columns: repeat(2, 1fr);
   }
