@@ -254,6 +254,14 @@ window.onload = function() {
     renderTopCategorias();
   }
 
+  // =================== EVENTOS DE NAVEGAÇÃO ===================
+  qsa('.tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setTab(btn.dataset.tab);
+    });
+  });
+  
   // =================== INIT ===================
   loadAll();
 };
+
