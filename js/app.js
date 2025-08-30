@@ -66,7 +66,7 @@ qs("#salvar")?.addEventListener("click", async (e) => {
     valor,
   };
 
-  await addTransaction(tx);
+  await saveTransaction(tx); // ✅ corrigido
   modal.style.display = "none";
   render();
 });
