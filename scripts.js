@@ -233,7 +233,6 @@ function itemTx(x, readOnly = false) {
   }
   return li;
 }
-
 // Função para abrir o modal de edição
 function openEdit(id) {
   const x = S.tx.find(t => t.id === id);
@@ -249,14 +248,10 @@ function openEdit(id) {
   qs('#modalTitle').textContent = 'Editar lançamento';
   qs('#modalLanc').style.display = 'flex';
   setTimeout(() => qs('#mValorBig').focus(), 0);
-}
+} // Aqui fechando a função openEdit
 
 // Função para formatação de valores em BRL
 function fmtMoney(v) {
   const n = Number(v);
   return isFinite(n) ? n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00';
 }
-
-
-
-
