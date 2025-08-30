@@ -26,10 +26,10 @@ window.onload = function() {
     const data = isIsoDate(t.data) ? t.data : nowYMD();
     const valor = (typeof t.valor === 'number') ? t.valor : parseMoneyMasked(t.valor);
     const v = isFinite(valor) ? valor : 0;
-    const desc = (t.desc != null) ? String(t.desc).trim() : '';
-    return categoria ? { id, tipo, categoria, data, desc, valor: v, obs: t.obs ? String(t.obs) : '' } : null;
+    const descricao = (t.descricao != null) ? String(t.descricao).trim() : '';
+    return categoria ? { id, tipo, categoria, data, descricao, valor: v, obs: t.obs ? String(t.obs) : '' } : null;
   }
-  // ======== Carregamento ========
+    // ======== Carregamento ========
   async function loadAll() {
     // Transações
     const { data: tx, error: txError } = await db.from('transactions').select('*');
@@ -120,7 +120,7 @@ window.onload = function() {
       <div class="left">
         <div class="tag">${x.tipo}</div>
         <div>
-          <div><strong>${x.desc || '-'}</strong></div>
+          <div><strong>${x.descricao || '-'}</strong></div>
           <div class="muted" style="font-size:12px">${x.categoria} • ${x.data}</div>
         </div>
       </div>
@@ -143,7 +143,7 @@ window.onload = function() {
     syncTipoTabs();
     rebuildCatSelect(x.categoria);
     qs('#mData').value = isIsoDate(x.data) ? x.data : nowYMD();
-    qs('#mDesc').value = x.desc || '';
+    qs('#mDesc').value = x.descricao || '';
     qs('#mValorBig').value = fmtMoney(Number(x.valor) || 0);
     qs('#mObs').value = x.obs || '';
     qs('#modalTitle').textContent = 'Editar lançamento';
