@@ -2,7 +2,7 @@
 // ui.js - Renderização & UI
 // =============================
 import { S, qs, qsa, fmtMoney, uid, monthOf, parseCurrency, monthsBack, getModalTipo, setModalTipo } from "./state.js";
-import { saveTx, saveCats, savePrefs, deleteTx } from "./storage.js";
+import { saveTransaction, saveCategory, savePrefs, deleteTransaction } from "./storage.js";
 import { renderRelatorios } from "./reports.js";
 
 // Expor algumas funções no window para botões inline
@@ -85,7 +85,7 @@ function renderLancamentos() {
 
 async function delTx(id) {
   if (!confirm("Excluir lançamento?")) return;
-  await deleteTx(id);
+  await deleteTransaction(id);
   render();
 }
 
@@ -138,7 +138,7 @@ export async function addOrUpdate() {
   } else {
     S.tx.push(tx);
   }
-  await saveTx();
+  await saveTransaction();
   S.editingId = null;
   toggleModal(false);
   render();
@@ -146,4 +146,3 @@ export async function addOrUpdate() {
 
 function sum(arr) { return arr.reduce((a, b) => a + (Number(b.valor) || 0), 0); }
 function setText(sel, v) { const el = qs(sel); if (el) el.innerText = v; }
-
