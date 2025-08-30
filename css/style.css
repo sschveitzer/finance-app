@@ -1,0 +1,39 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  background: #f4f4f9;
+  color: #333;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+input, button {
+  margin: 5px;
+  padding: 8px;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: #4CAF50;
+  color: white;
+  border-radius: 5px;
+}
+
+button:hover {
+  background: #45a049;
+}
+
+nav {
+  margin-bottom: 20px;
+}
+
+.page {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
