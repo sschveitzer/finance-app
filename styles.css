@@ -382,6 +382,7 @@ td {
   text-align: left;
   font-size: 14px;
 }
+
 /* ================================
    Estilo do Modal de Lançamentos
    ================================ */
@@ -553,3 +554,69 @@ body.dark .typetabs button.active {
   border-color: #ef4444;
 }
 
+/* ========================= */
+/*  RESPONSIVIDADE EXTRA     */
+/* ========================= */
+
+/* Tablets médios (até 1024px) */
+@media (max-width: 1024px) {
+  .tabs {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .tab {
+    flex: 1 1 45%;
+    text-align: center;
+  }
+  .grid.cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Celulares (até 768px) */
+@media (max-width: 768px) {
+  /* Tabs empilhadas */
+  .tabs {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .tab {
+    width: 100%;
+    text-align: center;
+    padding: 10px;
+  }
+
+  /* KPIs em uma coluna */
+  .grid.cards {
+    grid-template-columns: 1fr;
+  }
+
+  .kpi .value {
+    font-size: 20px;
+  }
+
+  /* Itens das listas em coluna */
+  .item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .item .left {
+    margin-bottom: 6px;
+  }
+
+  /* FAB mais próximo da borda */
+  .fab {
+    right: 16px;
+    bottom: 16px;
+    width: 52px;
+    height: 52px;
+    font-size: 24px;
+  }
+
+  /* Modal ocupa quase toda tela */
+  .modal .content {
+    width: 100%;
+    max-width: none;
+    height: auto;
+  }
+}
