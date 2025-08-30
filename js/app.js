@@ -1,4 +1,3 @@
-
 // ============================
 // Configuração do Supabase
 // ============================
@@ -51,58 +50,9 @@ async function checkUser() {
     document.getElementById("app-section").classList.add("hidden");
     document.getElementById("footer-menu").classList.add("hidden");
   }
-}
+} // <--- A chave de fechamento foi adicionada aqui
 
 checkUser();
-
-// ============================
-// Cadastro de Entradas e Saídas
-// ============================
-async function adicionarEntrada() {
-  const descricao = document.getElementById("entrada-desc").value;
-  const valor = document.getElementById("entrada-valor").value;
-  const categoria = document.getElementById("entrada-cat").value || "Outros";
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
-
-  let { error } = await supabase.from("entradas").insert([
-    { descricao, valor, categoria, user_id: user.id }
-  ]);
-
-  if (error) {
-    alert("Erro ao adicionar entrada: " + error.message);
-  } else {
-    document.getElementById("entrada-desc").value = "";
-    document.getElementById("entrada-valor").value = "";
-    loadExtrato();
-    loadRelatorios();
-    loadDashboard();
-  }
-}
-
-async function adicionarSaida() {
-  const descricao = document.getElementById("saida-desc").value;
-  const valor = document.getElementById("saida-valor").value;
-  const categoria = document.getElementById("saida-cat").value || "Outros";
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
-
-  let { error } = await supabase.from("saidas").insert([
-    { descricao, valor, categoria, user_id: user.id }
-  ]);
-
-  if (error) {
-    alert("Erro ao adicionar saída: " + error.message);
-  } else {
-    document.getElementById("saida-desc").value = "";
-    document.getElementById("saida-valor").value = "";
-    loadExtrato();
-    loadRelatorios();
-    loadDashboard();
-  }
-}
 
 // ============================
 // Dashboard com saldo
@@ -137,30 +87,39 @@ async function loadDashboard() {
 // ============================
 let grafico = null;
 function renderGrafico(entradas, saidas) {
-  const ctx = document.getElementById("grafico").getContext("2d");
+  const ctx = document.getElementById("grafico")?.getContext("2d");
+  if (ctx) {
+    if (grafico) grafico.destroy();
 
-  if (grafico) grafico.destroy();
-
-  grafico = new Chart(ctx, {
-    type: "doughnut",
-    data: {
-      labels: ["Entradas", "Saídas"],
-      datasets: [{
-        data: [entradas, saidas],
-        backgroundColor: ["#22c55e", "#ef4444"],
-        borderWidth: 0
-      }]
-    },
-    options: {
-      plugins: {
-        legend: {
-          labels: { color: "#fff" }
+    grafico = new Chart(ctx, {
+      type: "doughnut",
+      data: {
+        labels: ["Entradas", "Saídas"],
+        datasets: [{
+          data: [entradas, saidas],
+          backgroundColor: ["#22c55e", "#ef4444"],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        plugins: {
+          legend: {
+            labels: { color: "#fff" }
+          }
         }
       }
-    }
-  });
+    });
+  } else {
+    console.error("Elemento canvas não encontrado.");
+  }
 }
 
+// ============================
+// Aguardar carregamento do DOM
+// ============================
+document.addEventListener("DOMContentLoaded", function() {
+  loadDashboard();
+});
 // ============================
 // Carregar Extrato
 // ============================
@@ -191,7 +150,7 @@ async function loadExtrato() {
   extrato.forEach(item => {
     const li = document.createElement("li");
     li.className = "flex justify-between items-center bg-gray-700 p-3 rounded-lg";
-    li.innerHTML = `
+    li.innerHTML = ` 
       <div>
         <p class="font-semibold">${item.descricao} <small class="text-gray-400">(${item.categoria})</small></p>
         <small class="text-gray-400">${new Date(item.created_at).toLocaleDateString("pt-BR")}</small>
