@@ -201,7 +201,11 @@ window.onload = function () {
     renderRecentes();
     renderLancamentos();
   }
-
+  // ========= Troca de Abas =========
+  function setTab(name) {
+    qsa('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+    qsa('section').forEach(s => s.classList.toggle('active', s.id === name));
+  }
   // ========= Eventos =========
   qsa('.tab').forEach(btn => btn.addEventListener('click', () => setTab(btn.dataset.tab)));
   qs('#fab').addEventListener('click', () => { modalTipo = 'Despesa'; toggleModal(true, 'Nova Despesa'); });
@@ -216,3 +220,4 @@ window.onload = function () {
   // ========= Inicialização =========
   loadAll();
 };
+
