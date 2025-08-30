@@ -34,17 +34,22 @@ window.onload = function() {
     const { data: cats, error: catsError } = await db.from('categories').select('*');
     S.cats = catsError ? [] : cats;
 
-    // Carregar preferências
-    const { data: prefs, error: prefsError } = await db.from('preferences').select('*').single();
-    if (prefsError) {
-      S.month = nowYMD().slice(0, 7);
-      S.hide = false;
-      S.dark = false;
-    } else {
-      S.month = prefs.month;
-      S.hide = prefs.hide;
-      S.dark = prefs.dark;
-    }
+  // Carregar preferências (pode ser nulo)
+  const { data: prefs, error: prefsError } = await db.from('preferences').select('*').maybeSingle();
+  if (prefsError) {
+    console.error('Erro ao carregar preferências:', prefsError);
+  }
+
+  if (!prefs) {
+    // se não existir registro, usa valores padrão
+    S.month = nowYMD().slice(0, 7);
+    S.hide = false;
+    S.dark = false;
+  } else {
+    S.month = prefs.month;
+    S.hide = prefs.hide;
+    S.dark = prefs.dark;
+  }
 
     // Categorias padrão
     if (S.cats.length === 0) {
