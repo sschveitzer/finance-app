@@ -412,7 +412,7 @@ window.onload = function () {
 
   // ========= START =========
   loadAll();
-};
+
   // ========= MENU HAMBURGUER =========
   const menuToggle = document.getElementById("menuToggle");
   const tabsMenu = document.getElementById("tabsMenu");
@@ -425,3 +425,4 @@ window.onload = function () {
     });
   }
 };
+
