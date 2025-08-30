@@ -4,16 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>FinanceAPP V3.7.10</title>
-  <link rel="icon" href="data:,">
 
-  <!-- CDN do Supabase -->
+  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
+
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  
+
+  <!-- Ícones Phosphor -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
-	
-  <!-- Vinculação do CSS externo -->
+
+  <!-- CSS -->
   <link rel="stylesheet" href="styles.css">
-	
 </head>
 <body>
   <div class="nav">
@@ -35,60 +37,76 @@
   </div>
 
   <div class="container">
+    <!-- Dashboard -->
     <section id="dashboard" class="active">
       <div class="grid cards">
         <div class="card">
           <div class="kpi earn">
             <i class="ph ph-trend-up icon"></i>
             <div><div class="muted">Receitas (mês)</div><div id="kpiReceitas" class="value">R$ 0,00</div></div>
-            <span class="chip" style="margin-left:auto" id="kpiReceitasDelta">+0.0%</span>
+            <span class="chip" id="kpiReceitasDelta">+0.0%</span>
           </div>
         </div>
         <div class="card">
           <div class="kpi exp">
             <i class="ph ph-trend-down icon"></i>
             <div><div class="muted">Despesas (mês)</div><div id="kpiDespesas" class="value">R$ 0,00</div></div>
-            <span class="chip" style="margin-left:auto" id="kpiDespesasDelta">+0.0%</span>
+            <span class="chip" id="kpiDespesasDelta">+0.0%</span>
           </div>
         </div>
         <div class="card">
           <div class="kpi balance">
             <i class="ph ph-wallet icon"></i>
             <div><div class="muted">Saldo (mês)</div><div id="kpiSaldo" class="value">R$ 0,00</div></div>
-            <span class="chip" style="margin-left:auto" id="kpiSaldoDelta">+0.0%</span>
+            <span class="chip" id="kpiSaldoDelta">+0.0%</span>
           </div>
         </div>
       </div>
       <div class="grid two" style="margin-top:16px">
-        <div class="card"><h3>Saldo acumulado (12 meses)</h3><canvas id="chartSaldo"></canvas><div class="muted" style="text-align:right;margin-top:6px">Dados reais</div></div>
-        <div class="card"><h3>Despesas por categoria</h3><canvas id="chartPie"></canvas><div class="muted" style="text-align:right;margin-top:6px">Mês atual</div></div>
+        <div class="card"><h3>Saldo acumulado (12 meses)</h3><canvas id="chartSaldo"></canvas></div>
+        <div class="card"><h3>Despesas por categoria</h3><canvas id="chartPie"></canvas></div>
       </div>
       <div class="card" style="margin-top:16px">
         <h3>Últimos lançamentos</h3>
         <div style="display:flex;gap:10px;margin-bottom:10px">
-          <select id="filterTipo"><option value="todos">Todos</option><option value="Receita">Receitas</option><option value="Despesa">Despesas</option><option value="Transferência">Transferências</option></select>
+          <select id="filterTipo">
+            <option value="todos">Todos</option>
+            <option value="Receita">Receitas</option>
+            <option value="Despesa">Despesas</option>
+            <option value="Transferência">Transferências</option>
+          </select>
           <input type="text" id="searchLanc" placeholder="Buscar...">
         </div>
         <ul id="listaRecentes" class="list"></ul>
       </div>
     </section>
 
+    <!-- Lançamentos -->
     <section id="lancamentos">
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center"><h3>Lançamentos</h3><button class="btn" id="btnNovo">Novo lançamento</button></div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h3>Lançamentos</h3>
+          <button class="btn" id="btnNovo">Novo lançamento</button>
+        </div>
         <ul id="listaLanc" class="list" style="margin-top:12px"></ul>
       </div>
     </section>
 
+    <!-- Categorias -->
     <section id="categorias">
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center"><h3>Categorias</h3>
-          <div style="display:flex;gap:8px"><input id="newCatName" placeholder="Nova categoria..."><button class="btn" id="addCat">Adicionar</button></div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h3>Categorias</h3>
+          <div style="display:flex;gap:8px">
+            <input id="newCatName" placeholder="Nova categoria...">
+            <button class="btn" id="addCat">Adicionar</button>
+          </div>
         </div>
         <ul id="listaCats" class="list" style="margin-top:12px"></ul>
       </div>
     </section>
 
+    <!-- Relatórios -->
     <section id="relatorios">
       <div class="grid two">
         <div class="card"><h3>Fluxo por mês</h3><canvas id="chartFluxo"></canvas></div>
@@ -98,12 +116,13 @@
       </div>
     </section>
 
+    <!-- Config -->
     <section id="config">
       <div class="card">
         <h3>Backup</h3>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn secondary" id="btnExport">Exportar</button>
-          <label class="btn secondary" for="fileImport" style="cursor:pointer;display:inline-flex;align-items:center;gap:8px">Importar</label>
+          <label class="btn secondary" for="fileImport" style="cursor:pointer">Importar</label>
           <input type="file" id="fileImport" accept="application/json" style="display:none">
           <button class="btn" id="btnReset" style="background:#ef4444">Resetar tudo</button>
         </div>
@@ -111,26 +130,36 @@
     </section>
   </div>
 
+  <!-- Modal Lançamento -->
   <div class="modal" id="modalLanc">
     <div class="content">
-      <div class="title"><h3 id="modalTitle">Nova Despesa</h3><button class="close icon" id="closeModal"><i class="ph ph-x"></i></button></div>
-      <input id="mValorBig" class="amount" placeholder="R$ 0,00" inputmode="numeric" autocomplete="off">
-      <div class="typetabs" id="tipoTabs"><button type="button" data-type="Despesa" class="active">Despesa</button><button type="button" data-type="Receita">Receita</button><button type="button" data-type="Transferência">Transferência</button></div>
+      <div class="title">
+        <h3 id="modalTitle">Nova Despesa</h3>
+        <button class="close icon" id="closeModal"><i class="ph ph-x"></i></button>
+      </div>
+      <input id="mValorBig" class="amount" placeholder="R$ 0,00" inputmode="numeric">
+      <div class="typetabs" id="tipoTabs">
+        <button type="button" data-type="Despesa" class="active">Despesa</button>
+        <button type="button" data-type="Receita">Receita</button>
+        <button type="button" data-type="Transferência">Transferência</button>
+      </div>
       <div class="row3">
         <div><label>Categoria</label><select id="mCategoria"></select></div>
         <div><label>Data</label><input type="date" id="mData"></div>
-        <div><label>Descrição</label><input type="text" id="mDesc" placeholder="Descrição (Ex.: Mercado, Salário)"></div>
+        <div><label>Descrição</label><input type="text" id="mDesc" placeholder="Descrição"></div>
       </div>
-      <div style="margin-top:10px"><label>Observações</label><textarea id="mObs" rows="3" placeholder="Opcional"></textarea></div>
-      <div class="actions"><div class="left">Atalhos: <b>N</b> novo • <b>Enter</b> salvar • <b>Esc</b> cancelar</div>
+      <div style="margin-top:10px"><label>Observações</label><textarea id="mObs" rows="3"></textarea></div>
+      <div class="actions">
+        <div class="left">Atalhos: <b>N</b> novo • <b>Enter</b> salvar • <b>Esc</b> cancelar</div>
         <div class="right"><button class="btn-cancel" id="cancelar">Cancelar</button><button class="btn-save" id="salvar">Salvar</button></div>
       </div>
     </div>
   </div>
 
+  <!-- Botão flutuante -->
   <button class="fab" id="fab" title="Nova despesa"><i class="ph ph-plus"></i></button>
 
- <script src="scripts.js"></script>
-
+  <!-- JS -->
+  <script src="scripts.js"></script>
 </body>
 </html>
