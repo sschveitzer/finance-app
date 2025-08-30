@@ -413,3 +413,15 @@ window.onload = function () {
   // ========= START =========
   loadAll();
 };
+  // ========= MENU HAMBURGUER =========
+  const menuToggle = document.getElementById("menuToggle");
+  const tabsMenu = document.getElementById("tabsMenu");
+
+  if (menuToggle && tabsMenu) {
+    menuToggle.addEventListener("click", () => {
+      tabsMenu.classList.toggle("show");
+      // alterna ícone ☰ <-> ✕
+      menuToggle.textContent = tabsMenu.classList.contains("show") ? "✕" : "☰";
+    });
+  }
+};
