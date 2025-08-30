@@ -1,8 +1,8 @@
 // app.js FINAL COMPLETO
 
 // ====================== CONFIGURAÇÃO SUPABASE ======================
-const dbUrl = "https://xkflckzrjnyadobgeerh.supabase.co"; // substitua pelo seu
-const dbKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhrZmxja3pyam55YWRvYmdlZXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0NjQ2NzksImV4cCI6MjA3MjA0MDY3OX0.Me2Ch8t2w1id4VRRncRoCA2PH_OTFHD_Iy7mBBS0SNg"; // substitua pelo seu
+const dbUrl = "https://YOUR-PROJECT.db.co"; // substitua pelo seu
+const dbKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhrZmxja3pyam55YWRvYmdlZXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0NjQ2NzksImV4cCI6MjA3MjA0MDY3OX0.Me2Ch8t2w1id4VRRncRoCA2PH_OTFHD_Iy7mBBS0SNg";
 const db = window.db.createClient(supabaseUrl, supabaseKey);
 
 // ====================== ESTADO GLOBAL ======================
