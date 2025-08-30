@@ -555,27 +555,35 @@ body.dark .typetabs button.active {
 }
 
 /* ========================= */
-/*  RESPONSIVIDADE EXTRA     */
+/*  RESPONSIVIDADE ESPECÍFICA*/
 /* ========================= */
 
-/* Tablets médios (até 1024px) */
-@media (max-width: 1024px) {
+/* iPhone 16 (até 1179px wide) */
+@media (max-width: 1179px) {
   .tabs {
     flex-wrap: wrap;
     justify-content: center;
+    gap: 10px;
   }
   .tab {
     flex: 1 1 45%;
     text-align: center;
+    padding: 12px;
   }
   .grid.cards {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr 1fr;
+  }
+  .fab {
+    right: 18px;
+    bottom: 18px;
+    width: 54px;
+    height: 54px;
+    font-size: 26px;
   }
 }
 
-/* Celulares (até 768px) */
-@media (max-width: 768px) {
-  /* Tabs empilhadas */
+/* iPad Pro 11" (até 834px wide) */
+@media (max-width: 834px) {
   .tabs {
     flex-direction: column;
     gap: 8px;
@@ -585,17 +593,12 @@ body.dark .typetabs button.active {
     text-align: center;
     padding: 10px;
   }
-
-  /* KPIs em uma coluna */
   .grid.cards {
     grid-template-columns: 1fr;
   }
-
   .kpi .value {
     font-size: 20px;
   }
-
-  /* Itens das listas em coluna */
   .item {
     flex-direction: column;
     align-items: flex-start;
@@ -603,20 +606,18 @@ body.dark .typetabs button.active {
   .item .left {
     margin-bottom: 6px;
   }
-
-  /* FAB mais próximo da borda */
   .fab {
-    right: 16px;
-    bottom: 16px;
-    width: 52px;
-    height: 52px;
-    font-size: 24px;
+    right: 14px;
+    bottom: 14px;
+    width: 50px;
+    height: 50px;
+    font-size: 22px;
   }
-
-  /* Modal ocupa quase toda tela */
   .modal .content {
     width: 100%;
     max-width: none;
     height: auto;
+    margin: 0;
+    border-radius: 0;
   }
 }
