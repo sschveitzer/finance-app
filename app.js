@@ -1,30 +1,27 @@
-const K_TX='finapp_transactions_v3710', K_CT='finapp_categories_v3710', K_PF='finapp_prefs_v3710';
+// === APP.JS (versão final - apenas Supabase, sem localStorage) ===
+
+// Estado global
 let S={month:nowYMD().slice(0,7), hide:false, dark:false, editingId:null, tx:[], cats:[]};
 let modalTipo='Despesa';
 
-function safeSetItem(k,v){try{localStorage.setItem(k,v)}catch(e){console.error('Storage',e)}}
-
+// ======================= SUPABASE LOAD/SAVE =======================
 async function loadAll(){
   try {
-    let { data: tx } = await supabase.from("transactions").select("*");
+    let { data: tx }   = await supabase.from("transactions").select("*");
     let { data: cats } = await supabase.from("categories").select("*");
-    let { data: prefs } = await supabase.from("prefs").select("*");
+    let { data: prefs }= await supabase.from("prefs").select("*");
 
-    S.tx = tx || [];
+    S.tx   = (tx || []).map(normalizeTx).filter(Boolean);
     S.cats = cats || [];
     if(prefs && prefs.length){
       S.month = prefs[0].month || nowYMD().slice(0,7);
-      S.hide = prefs[0].hide || false;
-      S.dark = prefs[0].dark || false;
+      S.hide  = prefs[0].hide || false;
+      S.dark  = prefs[0].dark || false;
     }
   } catch (e) {
     console.error("Erro ao carregar do Supabase:", e);
-    S.tx=[];
+    S.tx=[]; S.cats=[];
   }
-
-  try{S.cats=JSON.parse(localStorage.getItem(K_CT)||'[]')}catch{S.cats=[]}
-  let pf={}; try{pf=JSON.parse(localStorage.getItem(K_PF)||'{}')}catch{pf={}}
-  if(pf.month) S.month=pf.month; if(pf.hide) S.hide=pf.hide; if(pf.dark) S.dark=pf.dark;
 
   if(S.cats.length===0){
     S.cats=[
@@ -35,7 +32,6 @@ async function loadAll(){
     ];
     saveCats();
   }
-  S.tx=S.tx.map(normalizeTx).filter(Boolean);
 }
 
 async function saveTx(){
@@ -51,65 +47,20 @@ async function savePrefs(){
   }]);
 }
 
+// ======================= HELPERS =======================
 function gid(){return Math.random().toString(36).slice(2,9)}
 function nowYMD(){const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)}
-
 function fmtMoney(v){const n=Number(v);return isFinite(n)?n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):'R$ 0,00'}
-
-function parseMoneyMasked(str){
-  if(str==null) return 0;
-  if(typeof str==='number') return Math.round(str*100)/100;
-  let s=String(str).trim(); if(!s) return 0;
-  if(/[,]/.test(s)){
-    s=s.replace(/[^\d\.,]/g,'');
-    if(s.indexOf(',')>-1){s=s.replace(/\./g,'').replace(',', '.');}
-  } else {
-    s=s.replace(/[^\d\.]/g,'');
-  }
-  const n=Number(s.replace(/\s+/g,''));
-  return isFinite(n)?Math.round(n*100)/100:0;
-}
-
-function monthOf(d){
-  if(!d) return nowYMD().slice(0,7);
-  const str = String(d);
-  return /^\d{4}-\d{2}-\d{2}$/.test(str) ? str.slice(0,7) : nowYMD().slice(0,7);
-}
+function parseMoneyMasked(str){ if(str==null) return 0; if(typeof str==='number') return Math.round(str*100)/100; let s=String(str).trim(); if(!s) return 0; if(/[,]/.test(s)){ s=s.replace(/[^\d\.,]/g,''); if(s.indexOf(',')>-1){s=s.replace(/\./g,'').replace(',', '.');}} else {s=s.replace(/[^\d\.]/g,'');} const n=Number(s.replace(/\s+/g,'')); return isFinite(n)?Math.round(n*100)/100:0; }
+function monthOf(d){ if(!d) return nowYMD().slice(0,7); const str = String(d); return /^\d{4}-\d{2}-\d{2}$/.test(str) ? str.slice(0,7) : nowYMD().slice(0,7); }
 function isIsoDate(s){return /^\d{4}-\d{2}-\d{2}$/.test(s)}
+function shiftMonth(m, delta){ let str = String(m || nowYMD().slice(0,7)); const [y,mo] = str.split('-').map(Number); if(!y || !mo) return nowYMD().slice(0,7); const date = new Date(y, (mo-1)+delta, 1); return new Date(date.getTime()-date.getTimezoneOffset()*60000).toISOString().slice(0,7); }
 
-function shiftMonth(m, delta){
-  let str = String(m || nowYMD().slice(0,7));
-  const [y,mo] = str.split('-').map(Number);
-  if(!y || !mo) return nowYMD().slice(0,7);
-  const date = new Date(y, (mo-1)+delta, 1);
-  return new Date(date.getTime()-date.getTimezoneOffset()*60000).toISOString().slice(0,7);
-}
-
-function normalizeTx(t){
-  if(!t) return null;
-  const id = t.id || gid();
-  const tipo = (t.tipo==='Receita'||t.tipo==='Despesa'||t.tipo==='Transferência') ? t.tipo : 'Despesa';
-  const categoria = (t.categoria && String(t.categoria).trim()) ? String(t.categoria).trim() : '';
-  const data = isIsoDate(t.data) ? t.data : nowYMD();
-  const valor = (typeof t.valor==='number') ? t.valor : parseMoneyMasked(t.valor);
-  const v = isFinite(valor) ? valor : 0;
-  const desc = (t.descricao!=null) ? String(t.descricao).trim() : ((t.desc!=null)?String(t.desc).trim():'');
-  const obs = t.obs ? String(t.obs).trim() : '';
-  return categoria ? {id,tipo,categoria,data,desc,valor:v,obs} : null;
-}
-
-function sumMonth(m){
-  let r=0,d=0;
-  const target = String(m || nowYMD().slice(0,7));
-  S.tx.filter(t=>monthOf(t.data)===target).forEach(t=>{
-    const v = Number(t.valor);
-    const val = isFinite(v) ? v : 0;
-    if(t.tipo==='Receita') r+=val;
-    if(t.tipo==='Despesa') d+=val;
-  });
-  return {r,d, bal:r-d};
-}
+function normalizeTx(t){ if(!t) return null; const id = t.id || gid(); const tipo = (t.tipo==='Receita'||t.tipo==='Despesa'||t.tipo==='Transferência') ? t.tipo : 'Despesa'; const categoria = (t.categoria && String(t.categoria).trim()) ? String(t.categoria).trim() : ''; const data = isIsoDate(t.data) ? t.data : nowYMD(); const valor = (typeof t.valor==='number') ? t.valor : parseMoneyMasked(t.valor); const v = isFinite(valor) ? valor : 0; const desc = (t.descricao!=null) ? String(t.descricao).trim() : ((t.desc!=null)?String(t.desc).trim():''); const obs = t.obs ? String(t.obs).trim() : ''; return categoria ? {id,tipo,categoria,data,desc,valor:v,obs} : null; }
+function sumMonth(m){ let r=0,d=0; const target = String(m || nowYMD().slice(0,7)); S.tx.filter(t=>monthOf(t.data)===target).forEach(t=>{ const v = Number(t.valor); const val = isFinite(v) ? v : 0; if(t.tipo==='Receita') r+=val; if(t.tipo==='Despesa') d+=val; }); return {r,d, bal:r-d}; }
 const qs=(s,p=document)=>p.querySelector(s), qsa=(s,p=document)=>[...p.querySelectorAll(s)];
+
+// ======================= RENDER =======================
 
 function setTab(name){
   qsa('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===name));
@@ -290,6 +241,8 @@ function renderCharts(){
     options:{plugins:{legend:{position:'bottom'}}}
   })
 }
+// ======================= RELATÓRIOS & EDIÇÃO =======================
+
 function renderRelatorios(){
   const labels=[], r=[], d=[];
   for (let i=11; i>=0; i--) {
@@ -416,103 +369,24 @@ function rebuildCatSelect(selected){
   })
 }
 
-function formatBRLInput(ev){
-  const el=ev.target; 
-  const digits=(el.value||'').replace(/\D/g,''); 
-  const n=digits?(Number(digits)/100):0; 
-  el.value=n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); 
-  requestAnimationFrame(()=>{el.setSelectionRange(el.value.length, el.value.length)})
-}
+// ======================= EVENTOS =======================
 
-window.addEventListener('DOMContentLoaded', ()=>{
-  loadAll();
-
-  if(S.dark) document.body.classList.add('dark');
-  qs('#toggleHide').checked=S.hide;
-
-  qsa('.tab').forEach(b=> b.onclick=()=> setTab(b.dataset.tab) );
-  qs('#monthSelect').onchange=e=>{ S.month=e.target.value; savePrefs(); render(); };
-  qs('#toggleHide').onchange=e=>{ S.hide=e.target.checked; savePrefs(); render(); };
-  qs('#toggleDark').onclick=()=>{ S.dark=!S.dark; savePrefs(); render(); };
-
-  qs('#filterTipo').onchange=renderRecentes;
-  qs('#searchLanc').oninput=renderRecentes;
-
-  qs('#btnNovo').onclick=()=>{ S.editingId=null; toggleModal(true,'Nova Despesa'); };
-  qs('#fab').onclick=()=>{ S.editingId=null; modalTipo='Despesa'; syncTipoTabs(); toggleModal(true,'Nova Despesa'); };
-  qs('#closeModal').onclick=()=> toggleModal(false);
-  qs('#cancelar').onclick=()=> toggleModal(false);
-  qs('#salvar').onclick=addOrUpdate;
-
-  qsa('#tipoTabs button').forEach(b=> b.onclick=()=>{ modalTipo=b.dataset.type; syncTipoTabs(); });
-  qs('#mValorBig').addEventListener('input', formatBRLInput);
-
-  qs('#addCat').onclick=()=>{
-    const name=qs('#newCatName').value.trim(); if(!name) return;
-    S.cats.push({id:gid(), nome:name, cor:'#4f46e5'});
-    qs('#newCatName').value='';
-    saveCats(); render();
-  };
-
-  qs('#btnExport').onclick=()=>{
-    const data={tx:S.tx, cats:S.cats, prefs:{month:S.month, hide:S.hide, dark:S.dark}};
-    const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
-    const a=document.createElement('a'); a.href=url; a.download='financeapp_backup.json'; a.click(); URL.revokeObjectURL(url);
-  };
-
-  qs('#fileImport').onchange = (ev)=>{
-    const file = ev.target.files; if(!file) return;
-    const reader = new FileReader();
-    reader.onload = ()=>{
-      try{
-        const data = JSON.parse(reader.result);
-        const isArr = (x)=> Array.isArray(x);
-        const safeTx = isArr(data.tx) ? data.tx.map(normalizeTx).filter(Boolean) : [];
-        const safeCats = isArr(data.cats) ? data.cats.map(c=>({
-          id: c && c.id ? String(c.id) : gid(),
-          nome: c && c.nome ? String(c.nome).trim() : 'Categoria',
-          cor: c && c.cor ? String(c.cor) : '#4f46e5'
-        })) : S.cats;
-        const prefs = data.prefs || {};
-        S.tx = safeTx.length ? safeTx : [];
-        if(safeCats.length) S.cats = safeCats;
-        if(prefs){ if(prefs.month) S.month=String(prefs.month).slice(0,7); S.hide=!!prefs.hide; S.dark=!!prefs.dark; }
-        saveTx(); saveCats(); savePrefs(); render();
-        alert('Importação concluída.');
-      }catch(e){ console.error(e); alert('Arquivo inválido. Certifique-se de que é um JSON exportado pelo app.'); }
-    };
-    reader.readAsText(file);
-  };
-
-  document.addEventListener('keydown', (ev)=>{
-    const modalOpen=qs('#modalLanc').style.display==='flex';
-    const tag=(document.activeElement&&document.activeElement.tagName)||'';
-    const typing=['INPUT','TEXTAREA'].includes(tag);
-    if(typing) return;
-    if(ev.key==='n'||ev.key==='N'){
-      ev.preventDefault(); if(!modalOpen){ S.editingId=null; modalTipo='Despesa'; syncTipoTabs(); toggleModal(true,'Nova Despesa'); }
-    }
-    if(ev.key==='Escape'){ if(modalOpen){ toggleModal(false); } }
-    if(ev.key==='Enter'){ if(modalOpen){ ev.preventDefault(); addOrUpdate(); } }
-  });
-
-  qs('#btnReset').onclick=()=>{
-    if(confirm('Isso vai apagar TODOS os dados (lançamentos, categorias e preferências). Deseja continuar?')){
-      const keys=[
-        'finapp_transactions_v3710','finapp_categories_v3710','finapp_prefs_v3710',
-        'finapp_transactions_v371','finapp_categories_v371','finapp_prefs_v371',
-        'finapp_transactions_v378','finapp_categories_v378','finapp_prefs_v378',
-        'finapp_transactions_v377','finapp_categories_v377','finapp_prefs_v377',
-        'finapp_transactions_v376','finapp_categories_v376','finapp_prefs_v376',
-        'finapp_transactions_v375','finapp_categories_v375','finapp_prefs_v375',
-        'finapp_transactions_v372','finapp_categories_v372','finapp_prefs_v372'
-      ];
-      keys.forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
-      S.tx=[]; S.cats=[]; S.month=nowYMD().slice(0,7); S.hide=false; S.dark=false; S.editingId=null;
-      loadAll(); render();
-      alert('Dados resetados com sucesso.');
-    }
-  };
-
+window.addEventListener('DOMContentLoaded', async()=>{
+  await loadAll(); 
   render();
+
+  qs('#monthSelect').onchange=()=>{S.month=qs('#monthSelect').value; savePrefs(); render()};
+  qs('#toggleHide').onchange=()=>{S.hide=qs('#toggleHide').checked; savePrefs(); render()};
+  qs('#btnDark').onclick=()=>{S.dark=!S.dark; savePrefs(); render()};
+  qs('#btnAddLanc').onclick=()=>toggleModal(true);
+  qs('#btnSaveLanc').onclick=()=>addOrUpdate();
+  qs('#btnCancelLanc').onclick=()=>toggleModal(false);
+  qsa('#tipoTabs button').forEach(b=> b.onclick=()=>{modalTipo=b.dataset.type; syncTipoTabs()});
+  qs('#searchLanc').oninput=()=>renderRecentes();
+  qs('#filterTipo').onchange=()=>renderRecentes();
+  qs('#btnAddCat').onclick=()=>{
+    const nome=prompt('Nome da nova categoria:');
+    if(nome){ S.cats.push({id:gid(), nome:nome, cor:'#3b82f6'}); saveCats(); render();}
+  }
 });
+
