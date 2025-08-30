@@ -1,4 +1,4 @@
-// === APP.JS (versão final - apenas Supabase, sem localStorage) ===
+// === APP.JS FINAL (Supabase apenas) ===
 
 // Estado global
 let S={month:nowYMD().slice(0,7), hide:false, dark:false, editingId:null, tx:[], cats:[]};
@@ -25,10 +25,10 @@ async function loadAll(){
 
   if(S.cats.length===0){
     S.cats=[
-      {id:gid(),nome:'Alimentação',cor:'#60a5fa'},
-      {id:gid(),nome:'Moradia',cor:'#f59e0b'},
-      {id:gid(),nome:'Transporte',cor:'#34d399'},
-      {id:gid(),nome:'Salário',cor:'#22c55e'}
+      {nome:'Alimentação',cor:'#60a5fa'},
+      {nome:'Moradia',cor:'#f59e0b'},
+      {nome:'Transporte',cor:'#34d399'},
+      {nome:'Salário',cor:'#22c55e'}
     ];
     saveCats();
   }
@@ -38,7 +38,8 @@ async function saveTx(){
   await supabase.from("transactions").upsert(S.tx, { onConflict: "id" });
 }
 async function saveCats(){
-  await supabase.from("categories").upsert(S.cats, { onConflict: "id" });
+  const cats = S.cats.map(c => ({ nome: c.nome, cor: c.cor }));
+  await supabase.from("categories").upsert(cats);
 }
 async function savePrefs(){
   await supabase.from("prefs").upsert([{ 
@@ -56,7 +57,7 @@ function monthOf(d){ if(!d) return nowYMD().slice(0,7); const str = String(d); r
 function isIsoDate(s){return /^\d{4}-\d{2}-\d{2}$/.test(s)}
 function shiftMonth(m, delta){ let str = String(m || nowYMD().slice(0,7)); const [y,mo] = str.split('-').map(Number); if(!y || !mo) return nowYMD().slice(0,7); const date = new Date(y, (mo-1)+delta, 1); return new Date(date.getTime()-date.getTimezoneOffset()*60000).toISOString().slice(0,7); }
 
-function normalizeTx(t){ if(!t) return null; const id = t.id || gid(); const tipo = (t.tipo==='Receita'||t.tipo==='Despesa'||t.tipo==='Transferência') ? t.tipo : 'Despesa'; const categoria = (t.categoria && String(t.categoria).trim()) ? String(t.categoria).trim() : ''; const data = isIsoDate(t.data) ? t.data : nowYMD(); const valor = (typeof t.valor==='number') ? t.valor : parseMoneyMasked(t.valor); const v = isFinite(valor) ? valor : 0; const desc = (t.descricao!=null) ? String(t.descricao).trim() : ((t.desc!=null)?String(t.desc).trim():''); const obs = t.obs ? String(t.obs).trim() : ''; return categoria ? {id,tipo,categoria,data,desc,valor:v,obs} : null; }
+function normalizeTx(t){ if(!t) return null; const id = t.id || gid(); const tipo = (t.tipo==='Receita'||t.tipo==='Despesa'||t.tipo==='Transferência') ? t.tipo : 'Despesa'; const categoria = (t.categoria && String(t.categoria).trim()) ? String(t.categoria).trim() : ''; const data = isIsoDate(t.data) ? t.data : nowYMD(); const valor = (typeof t.valor==='number') ? t.valor : parseMoneyMasked(t.valor); const v = isFinite(valor) ? valor : 0; const descricao = (t.descricao!=null) ? String(t.descricao).trim() : ''; const obs=(t.obs!=null)?String(t.obs).trim():''; return {id,tipo,categoria,data,descricao,valor:v,obs}; }
 function sumMonth(m){ let r=0,d=0; const target = String(m || nowYMD().slice(0,7)); S.tx.filter(t=>monthOf(t.data)===target).forEach(t=>{ const v = Number(t.valor); const val = isFinite(v) ? v : 0; if(t.tipo==='Receita') r+=val; if(t.tipo==='Despesa') d+=val; }); return {r,d, bal:r-d}; }
 const qs=(s,p=document)=>p.querySelector(s), qsa=(s,p=document)=>[...p.querySelectorAll(s)];
 
@@ -123,7 +124,7 @@ function setDelta(sel,now,prev){
   const n=isFinite(now)?now:0, p=isFinite(prev)?prev:0; 
   const pct=(p===0)?100:((n-p)/Math.abs(p))*100; 
   const sign=pct>=0?'+':''; 
-  el.textContent=sign+pct.toFixed(1)+'%'
+  el.textContent=sign+pct.toFixed(1)+'%';
 }
 
 function renderRecentes(){
@@ -132,7 +133,7 @@ function renderRecentes(){
   const tipo=qs('#filterTipo').value; 
   let list=[...S.tx].sort((a,b)=>b.data.localeCompare(a.data)).slice(0,10); 
   if(tipo!=='todos') list=list.filter(x=>x.tipo===tipo); 
-  if(term) list=list.filter(x=>(x.desc||'').toLowerCase().includes(term)); 
+  if(term) list=list.filter(x=>(x.descricao||'').toLowerCase().includes(term)); 
   ul.innerHTML=''; 
   if(list.length===0){ul.innerHTML='<div class="muted">Sem lançamentos…</div>'; return;} 
   list.forEach(x=> ul.append(itemTx(x, true))) 
@@ -151,7 +152,7 @@ function itemTx(x, readOnly=false){
     '<div class="left">'+ 
       '<div class="tag">'+x.tipo+'</div>'+ 
       '<div>'+ 
-        '<div><strong>'+(x.desc||'-')+'</strong></div>'+ 
+        '<div><strong>'+(x.descricao||'-')+'</strong></div>'+ 
         '<div class="muted" style="font-size:12px">'+x.categoria+' • '+x.data+'</div>'+ 
       '</div>'+ 
     '</div>'+ 
@@ -316,7 +317,7 @@ function openEdit(id){
   syncTipoTabs(); 
   rebuildCatSelect(x.categoria); 
   qs('#mData').value=isIsoDate(x.data)?x.data:nowYMD(); 
-  qs('#mDesc').value=x.desc||''; 
+  qs('#mDesc').value=x.descricao||''; 
   qs('#mValorBig').value=fmtMoney(Number(x.valor)||0); 
   qs('#mObs').value=x.obs||''; 
   qs('#modalTitle').textContent='Editar lançamento'; 
@@ -331,12 +332,12 @@ function addOrUpdate(){
     tipo:modalTipo, 
     categoria:qs('#mCategoria').value, 
     data:isIsoDate(qs('#mData').value)?qs('#mData').value:nowYMD(), 
-    desc:(qs('#mDesc').value||'').trim(), 
+    descricao:(qs('#mDesc').value||'').trim(), 
     valor:isFinite(valor)?valor:0, 
     obs:(qs('#mObs').value||'').trim()
   }; 
   if(!t.categoria){alert('Selecione categoria'); return} 
-  if(!t.desc){alert('Descrição obrigatória'); return} 
+  if(!t.descricao){alert('Descrição obrigatória'); return} 
   if(!(t.valor>0)){alert('Informe o valor'); return} 
   if(S.editingId){
     const i=S.tx.findIndex(x=>x.id===S.editingId); 
@@ -384,9 +385,12 @@ window.addEventListener('DOMContentLoaded', async()=>{
   qsa('#tipoTabs button').forEach(b=> b.onclick=()=>{modalTipo=b.dataset.type; syncTipoTabs()});
   qs('#searchLanc').oninput=()=>renderRecentes();
   qs('#filterTipo').onchange=()=>renderRecentes();
-  qs('#btnAddCat').onclick=()=>{
-    const nome=prompt('Nome da nova categoria:');
-    if(nome){ S.cats.push({id:gid(), nome:nome, cor:'#3b82f6'}); saveCats(); render();}
+
+  const btnCat = qs('#btnAddCat');
+  if(btnCat){
+    btnCat.onclick=()=>{
+      const nome=prompt('Nome da nova categoria:');
+      if(nome){ S.cats.push({nome:nome, cor:'#3b82f6'}); saveCats(); render();}
+    };
   }
 });
-
