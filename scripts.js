@@ -232,14 +232,15 @@ window.onload = function() {
     const n = Number(v);
     return isFinite(n) ? n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00';
   }
-
+  
+  // ======== Renderização geral ========
   function render() {
     renderRecentes();
     renderLancamentos();
-    // aqui você pode chamar outras funções de render se tiver (ex: KPIs, gráficos etc)
+    // se tiver funções de KPIs ou gráficos, chame aqui também
+    // ex: renderKpis(); renderCharts();
   }
-  
+
   // ======== Inicialização ========
   loadAll();
 };
-
