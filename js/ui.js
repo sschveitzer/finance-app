@@ -1,9 +1,9 @@
 // =============================
 // ui.js - Renderização & UI
 // =============================
-import { S, qs, qsa, fmtMoney, uid, monthOf, parseCurrency, monthsBack, getModalTipo, setModalTipo } from "./js/state.js";
-import { saveTx, saveCats, savePrefs, deleteTx } from "./js/storage.js";
-import { renderRelatorios } from "./js/reports.js";
+import { S, qs, qsa, fmtMoney, uid, monthOf, parseCurrency, monthsBack, getModalTipo, setModalTipo } from "./state.js";
+import { saveTx, saveCats, savePrefs, deleteTx } from "./storage.js";
+import { renderRelatorios } from "./reports.js";
 
 // Expor algumas funções no window para botões inline
 window.delTx = (id) => delTx(id);
