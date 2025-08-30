@@ -124,7 +124,6 @@ window.onload = function () {
   async function addOrUpdate() {
     const valor = parseFloat(qs('#mValorBig').value.replace(/\D/g, '')) / 100 || 0;
     const t = {
-      id: S.editingId || gid(),
       tipo: modalTipo,
       categoria: qs('#mCategoria').value,
       data: isIsoDate(qs('#mData').value) ? qs('#mData').value : nowYMD(),
@@ -458,3 +457,4 @@ window.onload = function () {
   // ========= Inicialização =========
   loadAll();
 };
+
