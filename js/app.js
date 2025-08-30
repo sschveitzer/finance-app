@@ -1,6 +1,6 @@
 // Configuração do Supabase
-const SUPABASE_URL = "https://ucqxwhukiewwcbsafslf.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcXh3aHVraWV3d2Nic2Fmc2xmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1NTAxMzIsImV4cCI6MjA3MjEyNjEzMn0.vm6-UcuObZdNEmJ53RmhNr-_ajF4a6MuUuFbuexYEUI";
+const SUPABASE_URL = "https://SEU-PROJETO.supabase.co";
+const SUPABASE_KEY = "chave-anon-do-supabase";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ==== Autenticação ====
@@ -11,15 +11,6 @@ async function login() {
   });
   if (error) alert(error.message);
   else checkUser();
-}
-
-async function signup() {
-  const { error } = await supabase.auth.signUp({
-    email: document.getElementById('email').value,
-    password: document.getElementById('password').value
-  });
-  if (error) alert(error.message);
-  else alert("Cadastro realizado! Verifique seu email.");
 }
 
 async function logout() {
@@ -46,7 +37,12 @@ async function addEntrada() {
   const desc = document.getElementById("descEntrada").value;
   const valor = parseFloat(document.getElementById("valorEntrada").value);
 
-  const { error } = await supabase.from("entradas").insert([{ descricao: desc, valor }]);
+  const { data: { user } } = await supabase.auth.getUser(); // ✅ pega usuário logado
+
+  const { error } = await supabase.from("entradas").insert([
+    { descricao: desc, valor, user_id: user.id } // ✅ inclui user_id
+  ]);
+
   if (error) alert(error.message);
   else loadEntradas();
 }
@@ -70,7 +66,12 @@ async function addSaida() {
   const desc = document.getElementById("descSaida").value;
   const valor = parseFloat(document.getElementById("valorSaida").value);
 
-  const { error } = await supabase.from("saidas").insert([{ descricao: desc, valor }]);
+  const { data: { user } } = await supabase.auth.getUser(); // ✅ pega usuário logado
+
+  const { error } = await supabase.from("saidas").insert([
+    { descricao: desc, valor, user_id: user.id } // ✅ inclui user_id
+  ]);
+
   if (error) alert(error.message);
   else loadSaidas();
 }
@@ -107,7 +108,13 @@ async function loadRelatorio() {
 // ==== Gráfico ====
 function renderGrafico(entradas, saidas) {
   const ctx = document.getElementById("grafico");
-  new Chart(ctx, {
+
+  // Destroi gráfico antigo se já existir (evita duplicar)
+  if (window.myChart) {
+    window.myChart.destroy();
+  }
+
+  window.myChart = new Chart(ctx, {
     type: "pie",
     data: {
       labels: ["Entradas", "Saídas"],
@@ -127,4 +134,3 @@ function showSection(sectionId) {
 
 // Inicializar
 checkUser();
-
