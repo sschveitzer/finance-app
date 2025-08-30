@@ -1,118 +1,163 @@
-// storage.js - Persistência no Supabase (sem localStorage)
-import { S, getCurrentUser, normalizeTx } from "./state.js";
-
 // =============================
-// Carregar todos os dados
+// storage.js - Operações com Supabase
 // =============================
-export async function loadAll() {
-  const user = getCurrentUser();
-  if (!user || !window.supabase) return;
-  const uid = user.id || user.user?.id;
-  try {
-    const { data: tx, error: txErr } = await supabase
-      .from("transactions")
-      .select("*")
-      .eq("user_id", uid)
-      .order("data");
-
-    const { data: cats, error: catErr } = await supabase
-      .from("categories")
-      .select("*")
-      .eq("user_id", uid)
-      .order("nome");
-
-    const { data: prefs, error: prefErr } = await supabase
-      .from("prefs")
-      .select("*")
-      .eq("user_id", uid);
-
-    if (txErr) throw txErr;
-    if (catErr) throw catErr;
-    if (prefErr) throw prefErr;
-
-    S.tx = (tx || []).map(normalizeTx).filter(Boolean);
-    S.cats = cats && cats.length ? cats : [];
-
-    if (prefs && prefs.length) {
-      S.month = prefs[0].month || S.month;
-      S.hide = !!prefs[0].hide;
-      S.dark = !!prefs[0].dark;
-    }
-  } catch (e) {
-    alert("Erro ao carregar dados do Supabase: " + e.message);
-    console.error(e);
-  }
-}
+import { S } from "./state.js";
+import { render } from "./ui.js";
 
 // =============================
 // Transações
 // =============================
+
+// Salvar ou atualizar transação
 export async function saveTransaction(tx) {
-  const user = getCurrentUser();
-  if (!user || !window.supabase) return;
-  const uid = user.id || user.user?.id;
   try {
-    const withUser = { ...tx, user_id: uid };
+    const uid = S.currentUser?.id;
+    if (!uid) return;
+
+    const payload = {
+      ...tx,
+      user_id: uid
+    };
+
     const { error } = await supabase
       .from("transactions")
-      .upsert(withUser, { onConflict: "id" });
+      .upsert(payload, { onConflict: "id" });
+
     if (error) throw error;
+    await loadTransactions();
   } catch (e) {
+    console.error("Erro ao salvar transação:", e.message);
     alert("Erro ao salvar transação: " + e.message);
-    console.error(e);
   }
 }
 
+// Excluir transação
 export async function deleteTransaction(id) {
-  const user = getCurrentUser();
-  if (!user || !window.supabase) return;
   try {
+    const uid = S.currentUser?.id;
+    if (!uid) return;
+
     const { error } = await supabase
       .from("transactions")
       .delete()
-      .eq("id", id);
+      .eq("id", id)
+      .eq("user_id", uid);
+
     if (error) throw error;
+    await loadTransactions();
   } catch (e) {
-    alert("Erro ao excluir lançamento: " + e.message);
-    console.error(e);
+    console.error("Erro ao excluir transação:", e.message);
+    alert("Erro ao excluir transação: " + e.message);
+  }
+}
+
+// Carregar transações do usuário
+export async function loadTransactions() {
+  try {
+    const uid = S.currentUser?.id;
+    if (!uid) {
+      S.transactions = [];
+      render();
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("transactions")
+      .select("*")
+      .eq("user_id", uid)
+      .order("data", { ascending: false });
+
+    if (error) throw error;
+
+    S.transactions = data || [];
+    render();
+  } catch (e) {
+    console.error("Erro ao carregar transações:", e.message);
+    S.transactions = [];
+    render();
   }
 }
 
 // =============================
 // Categorias
 // =============================
-export async function saveCategory(cat) {
-  const user = getCurrentUser();
-  if (!user || !window.supabase) return;
-  const uid = user.id || user.user?.id;
+
+// Carregar categorias
+export async function loadCategories() {
   try {
-    const withUser = { ...cat, user_id: uid };
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("categories")
-      .upsert(withUser, { onConflict: "id" });
+      .select("*")
+      .order("nome");
+
     if (error) throw error;
+
+    S.categories = data || [];
   } catch (e) {
-    alert("Erro ao salvar categoria: " + e.message);
-    console.error(e);
+    console.error("Erro ao carregar categorias:", e.message);
+    S.categories = [];
   }
 }
 
 // =============================
-// Preferências
+// Preferências do usuário
 // =============================
-export async function savePrefs() {
-  const user = getCurrentUser();
-  if (!user || !window.supabase) return;
-  const uid = user.id || user.user?.id;
+
+// Salvar preferências
+export async function savePrefs(S) {
   try {
-    // removi `id: uid` pq pode não existir essa coluna
-    const prefs = { user_id: uid, month: S.month, hide: S.hide, dark: S.dark };
+    const uid = S.currentUser?.id;
+    if (!uid) return;
+
+    const prefs = {
+      user_id: uid,   // 🔑 agora é a chave primária
+      month: S.month,
+      hide: S.hide,
+      dark: S.dark
+    };
+
     const { error } = await supabase
       .from("prefs")
       .upsert(prefs, { onConflict: "user_id" });
+
     if (error) throw error;
   } catch (e) {
+    console.error("Erro ao salvar preferências:", e.message);
     alert("Erro ao salvar preferências: " + e.message);
-    console.error(e);
   }
+}
+
+// Carregar preferências
+export async function loadPrefs() {
+  try {
+    const uid = S.currentUser?.id;
+    if (!uid) return;
+
+    const { data, error } = await supabase
+      .from("prefs")
+      .select("*")
+      .eq("user_id", uid)
+      .single();
+
+    if (error && error.code !== "PGRST116") throw error; // PGRST116 = not found
+
+    if (data) {
+      S.month = data.month ?? S.month;
+      S.hide  = data.hide ?? S.hide;
+      S.dark  = data.dark ?? S.dark;
+    }
+  } catch (e) {
+    console.error("Erro ao carregar preferências:", e.message);
+  }
+}
+
+// =============================
+// Carregar tudo (quando loga)
+// =============================
+export async function loadAll() {
+  await Promise.all([
+    loadTransactions(),
+    loadCategories(),
+    loadPrefs()
+  ]);
 }
