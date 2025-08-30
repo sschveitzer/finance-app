@@ -20,15 +20,19 @@
 </head>
 <body class="text-white min-h-screen flex flex-col">
 
-  <!-- Login -->
-  <section id="auth-section" class="flex flex-col items-center justify-center h-screen">
-    <div class="card w-80">
-      <h1 class="text-2xl font-bold mb-4 text-center text-purple-400">Finance App</h1>
-      <input id="email" type="email" placeholder="E-mail" class="mb-2" />
-      <input id="senha" type="password" placeholder="Senha" class="mb-4" />
-      <button onclick="login()" class="btn btn-purple w-full">Entrar</button>
-    </div>
-  </section>
+<!-- Login -->
+<section id="auth-section" class="flex flex-col items-center justify-center h-screen">
+  <div class="card w-80">
+    <h1 class="text-2xl font-bold mb-4 text-center text-purple-400">Finance App</h1>
+    
+    <!-- Formulário de Login -->
+    <form id="login-form" onsubmit="login(event)">
+      <input id="email" type="email" placeholder="E-mail" class="mb-2" required />
+      <input id="senha" type="password" placeholder="Senha" class="mb-4" required />
+      <button type="submit" class="btn btn-purple w-full">Entrar</button>
+    </form>
+  </div>
+</section>
 
   <!-- App -->
   <section id="app-section" class="hidden flex flex-col flex-1">
