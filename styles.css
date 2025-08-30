@@ -302,3 +302,51 @@ button {
     right: 20px;
   }
 }
+/* ---------- AJUSTES TABLET (iPad 11) ---------- */
+@media (min-width: 769px) and (max-width: 1024px) {
+
+  .nav .wrap {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .nav .badge {
+    font-size: 15px;
+    padding: 6px 12px;
+  }
+
+  .nav .right {
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+
+  .tabs {
+    flex-direction: row;
+    gap: 6px;
+    width: auto;
+    max-height: none;
+    opacity: 1;
+    transform: none;
+  }
+  .tab {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+
+  /* Cards KPIs: 2 por linha */
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Gráficos: mantém lado a lado se couber */
+  .grid.two {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Botão flutuante */
+  .fab {
+    bottom: 70px;
+    right: 24px;
+  }
+}
