@@ -55,15 +55,19 @@ async function loadDashboard() {
 }
 
 async function loadRelatorio() {
-  // Buscar entradas
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Buscar entradas do usuário logado
   const { data: entradas, error: errEntradas } = await supabase
     .from("entradas")
-    .select("*");
+    .select("*")
+    .eq("user_id", user.id);
 
-  // Buscar saídas
+  // Buscar saídas do usuário logado
   const { data: saidas, error: errSaidas } = await supabase
     .from("saidas")
-    .select("*");
+    .select("*")
+    .eq("user_id", user.id);
 
   if (errEntradas || errSaidas) {
     console.error("Erro carregando dados", errEntradas || errSaidas);
@@ -127,7 +131,11 @@ async function addEntrada() {
     return;
   }
 
-  const { error } = await supabase.from("entradas").insert([{ descricao: desc, valor }]);
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const { error } = await supabase.from("entradas").insert([
+    { descricao: desc, valor, user_id: user.id }
+  ]);
 
   if (error) {
     alert("Erro ao adicionar entrada: " + error.message);
@@ -150,7 +158,11 @@ async function addSaida() {
     return;
   }
 
-  const { error } = await supabase.from("saidas").insert([{ descricao: desc, valor }]);
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const { error } = await supabase.from("saidas").insert([
+    { descricao: desc, valor, user_id: user.id }
+  ]);
 
   if (error) {
     alert("Erro ao adicionar saída: " + error.message);
