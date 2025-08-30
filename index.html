@@ -2,92 +2,116 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Finance App</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="icon" href="data:," /> <!-- evita erro favicon -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finance Control</title>
+  <link rel="icon" href="data:," /> <!-- evita erro do favicon -->
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <script defer src="js/app.js"></script>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-gray-900 text-white flex flex-col min-h-screen">
+<body class="bg-gray-900 text-white min-h-screen">
 
   <!-- Login -->
-  <section id="auth-section" class="flex-1 flex items-center justify-center">
-    <div class="w-full max-w-sm bg-gray-800 p-6 rounded-2xl shadow-lg">
-      <h1 class="text-2xl font-bold mb-4 text-center">Finance App</h1>
-      <input id="email" type="email" placeholder="Email"
-             class="w-full p-2 mb-2 rounded bg-gray-700 focus:outline-none">
-      <input id="password" type="password" placeholder="Senha"
-             class="w-full p-2 mb-4 rounded bg-gray-700 focus:outline-none">
-      <button onclick="login()"
-              class="w-full bg-purple-600 hover:bg-purple-700 p-2 rounded font-bold">
-        Entrar
-      </button>
+  <section id="auth-section" class="flex flex-col items-center justify-center h-screen">
+    <div class="bg-gray-800 p-6 rounded-2xl shadow-lg w-80">
+      <h1 class="text-2xl font-bold mb-4 text-center text-purple-400">Finance Control</h1>
+      <input id="email" type="email" placeholder="E-mail" class="w-full mb-2 p-2 rounded bg-gray-700 text-white" />
+      <input id="senha" type="password" placeholder="Senha" class="w-full mb-4 p-2 rounded bg-gray-700 text-white" />
+      <button onclick="login()" class="w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 rounded">Entrar</button>
     </div>
   </section>
 
-  <!-- Dashboard -->
-  <section id="app-section" class="hidden flex-1 p-4">
-    <div id="dashboard" class="space-y-6">
+  <!-- App -->
+  <section id="app-section" class="hidden flex flex-col h-screen">
+    
+    <!-- Topbar -->
+    <div class="flex justify-between items-center p-4 bg-gray-800 shadow">
+      <h2 class="text-xl font-bold text-purple-400">💰 Finance Control</h2>
+      <button onclick="logout()" class="text-red-400 hover:text-red-500 font-semibold">Sair</button>
+    </div>
 
-      <!-- Saldo -->
-      <div class="bg-purple-700 p-6 rounded-2xl text-center shadow-lg">
-        <h2 class="text-lg">Saldo</h2>
-        <p id="saldo" class="text-3xl font-bold">R$ 0,00</p>
-      </div>
+    <!-- Navegação -->
+    <nav class="flex justify-around bg-gray-800 p-2">
+      <button onclick="showTab('dashboard')" class="text-purple-400 hover:text-purple-500">Dashboard</button>
+      <button onclick="showTab('extrato')" class="text-purple-400 hover:text-purple-500">Extrato</button>
+      <button onclick="showTab('relatorios')" class="text-purple-400 hover:text-purple-500">Relatórios</button>
+      <button onclick="showTab('metas')" class="text-purple-400 hover:text-purple-500">Metas</button>
+      <button onclick="showTab('perfil')" class="text-purple-400 hover:text-purple-500">Perfil</button>
+    </nav>
 
-      <!-- Totais -->
-      <div class="grid grid-cols-2 gap-4">
-        <div class="bg-green-600 p-4 rounded-2xl text-center">
-          <h3>Entradas</h3>
-          <p id="total-entradas" class="text-xl">R$ 0,00</p>
+    <!-- Conteúdo -->
+    <main class="flex-1 overflow-y-auto p-4 space-y-6">
+
+      <!-- Dashboard -->
+      <section id="dashboard">
+        <h3 class="text-lg font-semibold mb-2">Visão Geral</h3>
+        <p class="text-gray-400">Resumo rápido do seu financeiro.</p>
+      </section>
+
+      <!-- Extrato -->
+      <section id="extrato" class="hidden">
+        <h3 class="text-lg font-semibold mb-4">Extrato</h3>
+        
+        <!-- Form Entradas -->
+        <div class="bg-gray-800 p-4 rounded-xl mb-4">
+          <h4 class="font-bold mb-2 text-green-400">Adicionar Entrada</h4>
+          <input id="entrada-desc" type="text" placeholder="Descrição" class="w-full mb-2 p-2 rounded bg-gray-700 text-white" />
+          <input id="entrada-valor" type="number" placeholder="Valor" class="w-full mb-2 p-2 rounded bg-gray-700 text-white" />
+          <input id="entrada-cat" type="text" placeholder="Categoria (ex: Salário)" class="w-full mb-2 p-2 rounded bg-gray-700 text-white" />
+          <button onclick="adicionarEntrada()" class="w-full bg-green-500 hover:bg-green-600 py-2 rounded">Adicionar</button>
         </div>
-        <div class="bg-red-600 p-4 rounded-2xl text-center">
-          <h3>Saídas</h3>
-          <p id="total-saidas" class="text-xl">R$ 0,00</p>
+
+        <!-- Form Saídas -->
+        <div class="bg-gray-800 p-4 rounded-xl mb-4">
+          <h4 class="font-bold mb-2 text-red-400">Adicionar Saída</h4>
+          <input id="saida-desc" type="text" placeholder="Descrição" class="w-full mb-2 p-2 rounded bg-gray-700 text-white" />
+          <input id="saida-valor" type="number" placeholder="Valor" class="w-full mb-2 p-2 rounded bg-gray-700 text-white" />
+          <input id="saida-cat" type="text" placeholder="Categoria (ex: Mercado)" class="w-full mb-2 p-2 rounded bg-gray-700 text-white" />
+          <button onclick="adicionarSaida()" class="w-full bg-red-500 hover:bg-red-600 py-2 rounded">Adicionar</button>
         </div>
-      </div>
 
-      <!-- Gráfico -->
-      <div class="bg-gray-800 p-4 rounded-2xl shadow-lg">
-        <canvas id="grafico"></canvas>
-      </div>
-    </div>
+        <!-- Lista -->
+        <ul id="extrato-lista" class="space-y-2"></ul>
+      </section>
 
-    <!-- Extrato -->
-    <div id="extrato" class="hidden">
-      <h2 class="text-xl font-bold mb-4">Extrato</h2>
-      <ul id="extrato-lista" class="space-y-2"></ul>
-    </div>
+      <!-- Relatórios -->
+      <section id="relatorios" class="hidden space-y-6">
+        <h3 class="text-lg font-semibold">Relatórios</h3>
 
-    <!-- Relatórios -->
-    <div id="relatorios" class="hidden">
-      <h2 class="text-xl font-bold mb-4">Relatórios</h2>
-      <canvas id="grafico-relatorio"></canvas>
-    </div>
+        <!-- Gráfico de Barras -->
+        <div class="bg-gray-800 p-4 rounded-xl">
+          <h4 class="font-bold mb-2 text-purple-400">Entradas x Saídas (Mensal)</h4>
+          <canvas id="grafico-relatorio" height="100"></canvas>
+        </div>
 
-    <!-- Metas -->
-    <div id="metas" class="hidden">
-      <h2 class="text-xl font-bold mb-4">Metas</h2>
-      <p class="text-gray-400">🚧 Em construção</p>
-    </div>
+        <!-- Gráfico de Categorias -->
+        <div class="bg-gray-800 p-4 rounded-xl">
+          <h4 class="font-bold mb-2 text-purple-400">Gastos por Categoria</h4>
+          <canvas id="grafico-categorias" height="100"></canvas>
+        </div>
+      </section>
 
-    <!-- Perfil -->
-    <div id="perfil" class="hidden">
-      <h2 class="text-xl font-bold mb-4">Perfil</h2>
-      <p id="user-email" class="mb-4"></p>
-      <button onclick="logout()" class="bg-red-600 p-2 rounded w-full">Sair</button>
-    </div>
+      <!-- Metas -->
+      <section id="metas" class="hidden">
+        <h3 class="text-lg font-semibold">Metas</h3>
+        <p class="text-gray-400">Em breve: defina metas financeiras.</p>
+      </section>
+
+      <!-- Perfil -->
+      <section id="perfil" class="hidden">
+        <h3 class="text-lg font-semibold">Perfil</h3>
+        <p class="text-gray-400">Em breve: dados da conta.</p>
+      </section>
+    </main>
   </section>
 
-  <!-- Footer Menu -->
-  <footer id="footer-menu" class="hidden fixed bottom-0 w-full bg-gray-800 flex justify-around p-3">
-    <button onclick="showTab('dashboard')" class="text-sm">🏠</button>
-    <button onclick="showTab('extrato')" class="text-sm">📜</button>
-    <button onclick="showTab('relatorios')" class="text-sm">📊</button>
-    <button onclick="showTab('metas')" class="text-sm">🎯</button>
-    <button onclick="showTab('perfil')" class="text-sm">👤</button>
-  </footer>
+  <!-- Script -->
+  <script src="js/app.js"></script>
 </body>
 </html>
