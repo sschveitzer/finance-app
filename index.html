@@ -3,8 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <title>App Financeiro</title>
+
+  <!-- ✅ Favicon vazio (remove erro 404 no console) -->
+  <link rel="icon" href="data:," />
+
+  <!-- CSS -->
   <link rel="stylesheet" href="css/style.css" />
+
+  <!-- Supabase e Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Seu código -->
   <script defer src="js/app.js"></script>
 </head>
 <body>
@@ -18,7 +28,7 @@
     <input id="email" type="email" placeholder="Email" />
     <input id="password" type="password" placeholder="Senha" />
     <button onclick="login()">Entrar</button>
-    <button onclick="signup()">Cadastrar</button>
+    <!-- 🚫 Botão de cadastro removido -->
   </section>
 
   <!-- Aplicação -->
