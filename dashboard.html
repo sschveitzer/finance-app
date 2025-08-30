@@ -107,48 +107,47 @@
       </form>
     </div>
   </div>
+<!-- 🔹 Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script type="module">
+  import { checkUser, doLogout } from "./js/auth.js";
 
-  <!-- 🔹 Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <script type="module">
-    import { checkUser, doLogout } from "./js/auth.js";
-    import { loadAll } from "./js/storage.js";
-    import { render } from "./js/ui.js";
-    import "./js/app.js";
+  // Inicializa Supabase
+  const { createClient } = supabase;
+  window.supabase = createClient(
+    "https://xkflckzrjnyadobgeerh.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhrZmxja3pyam55YWRvYmdlZXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0NjQ2NzksImV4cCI6MjA3MjA0MDY3OX0.Me2Ch8t2w1id4VRRncRoCA2PH_OTFHD_Iy7mBBS0SNg",
+    { auth: { persistSession: true, autoRefreshToken: true } }
+  );
 
-    // Inicializa Supabase
-    const { createClient } = supabase;
-    window.supabase = createClient(
-      "https://xkflckzrjnyadobgeerh.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhrZmxja3pyam55YWRvYmdlZXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0NjQ2NzksImV4cCI6MjA3MjA0MDY3OX0.Me2Ch8t2w1id4VRRncRoCA2PH_OTFHD_Iy7mBBS0SNg",
-      { auth: { persistSession: true, autoRefreshToken: true } }
-    );
+  // Aguarda sessão antes de checar
+  supabase.auth.getSession().then(() => {
+    checkUser();
+  });
 
-    // Aguarda sessão antes de checar
-    supabase.auth.getSession().then(() => {
+  // Botão sair
+  document.getElementById("btnLogout").addEventListener("click", async () => {
+    await doLogout();
+    window.location.href = "index.html";
+  });
+
+  // Monitora mudanças na sessão
+  supabase.auth.onAuthStateChange((_event, session) => {
+    if (session?.user) {
       checkUser();
-    });
+    } else {
+      window.location.href = "index.html";
+    }
+  });
+</script>
 
-    // Botão sair
-    document.getElementById("btnLogout").addEventListener("click", async () => {
-      await doLogout();
-    });
-
-    // Monitora mudanças na sessão
-    supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        checkUser();
-      } else {
-        window.location.href = "index.html";
-      }
-    });
-  </script>
-  
+<!-- Carrega app.js -->
 <script type="module" src="./js/app.js"></script>
-  
+ 
 </body>
 </html>
+
 
 
 
