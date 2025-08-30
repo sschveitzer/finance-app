@@ -2,81 +2,92 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Finance App</title>
-  <link rel="icon" href="data:," />
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:," /> <!-- evita erro favicon -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <script defer src="js/app.js"></script>
 </head>
-<body class="bg-gradient-to-b from-[#1a1a1a] to-black text-white font-sans min-h-screen flex flex-col">
+<body class="bg-gray-900 text-white flex flex-col min-h-screen">
 
-  <!-- HEADER -->
-  <header class="bg-black/80 backdrop-blur-md px-6 py-4 flex justify-between items-center border-b border-gray-800">
-    <h1 class="text-xl font-bold text-purple-400">💸 FamíliaBank</h1>
-    <button onclick="logout()" class="text-sm text-gray-400 hover:text-white">Sair</button>
-  </header>
+  <!-- Login -->
+  <section id="auth-section" class="flex-1 flex items-center justify-center">
+    <div class="w-full max-w-sm bg-gray-800 p-6 rounded-2xl shadow-lg">
+      <h1 class="text-2xl font-bold mb-4 text-center">Finance App</h1>
+      <input id="email" type="email" placeholder="Email"
+             class="w-full p-2 mb-2 rounded bg-gray-700 focus:outline-none">
+      <input id="password" type="password" placeholder="Senha"
+             class="w-full p-2 mb-4 rounded bg-gray-700 focus:outline-none">
+      <button onclick="login()"
+              class="w-full bg-purple-600 hover:bg-purple-700 p-2 rounded font-bold">
+        Entrar
+      </button>
+    </div>
+  </section>
 
-  <!-- LOGIN -->
-  <main id="auth-section" class="flex-1 flex flex-col items-center justify-center gap-6 p-6">
-    <h2 class="text-2xl font-bold text-purple-300">Entrar</h2>
-    <input id="email" type="email" placeholder="E-mail"
-      class="w-72 p-3 rounded-xl bg-gray-900 text-white border border-gray-700 focus:border-purple-500 outline-none" />
-    <input id="password" type="password" placeholder="Senha"
-      class="w-72 p-3 rounded-xl bg-gray-900 text-white border border-gray-700 focus:border-purple-500 outline-none" />
-    <button onclick="login()" class="bg-purple-600 hover:bg-purple-700 px-6 py-3 rounded-full font-semibold shadow-lg">Entrar</button>
-  </main>
+  <!-- Dashboard -->
+  <section id="app-section" class="hidden flex-1 p-4">
+    <div id="dashboard" class="space-y-6">
 
-  <!-- DASHBOARD -->
-  <main id="app-section" class="hidden flex-1 flex-col p-4 gap-6">
-
-    <!-- SALDO -->
-    <section class="card bg-gradient-to-br from-purple-600 to-purple-800 text-white rounded-2xl p-6 shadow-xl">
-      <p class="text-sm text-purple-200">Saldo Atual</p>
-      <p id="saldo" class="text-4xl font-bold mt-2">R$ 0,00</p>
-    </section>
-
-    <!-- ENTRADAS / SAÍDAS -->
-    <section class="grid grid-cols-2 gap-4">
-      <div class="bg-gray-900 rounded-2xl p-5 shadow-lg">
-        <p class="text-sm text-green-400">Entradas</p>
-        <p id="total-entradas" class="text-2xl font-bold mt-2">R$ 0,00</p>
+      <!-- Saldo -->
+      <div class="bg-purple-700 p-6 rounded-2xl text-center shadow-lg">
+        <h2 class="text-lg">Saldo</h2>
+        <p id="saldo" class="text-3xl font-bold">R$ 0,00</p>
       </div>
-      <div class="bg-gray-900 rounded-2xl p-5 shadow-lg">
-        <p class="text-sm text-red-400">Saídas</p>
-        <p id="total-saidas" class="text-2xl font-bold mt-2">R$ 0,00</p>
+
+      <!-- Totais -->
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-green-600 p-4 rounded-2xl text-center">
+          <h3>Entradas</h3>
+          <p id="total-entradas" class="text-xl">R$ 0,00</p>
+        </div>
+        <div class="bg-red-600 p-4 rounded-2xl text-center">
+          <h3>Saídas</h3>
+          <p id="total-saidas" class="text-xl">R$ 0,00</p>
+        </div>
       </div>
-    </section>
 
-    <!-- GRÁFICO -->
-    <section class="bg-gray-900 rounded-2xl p-5 shadow-lg">
-      <h3 class="text-lg font-semibold mb-4">Relatório</h3>
-      <canvas id="grafico"></canvas>
-    </section>
+      <!-- Gráfico -->
+      <div class="bg-gray-800 p-4 rounded-2xl shadow-lg">
+        <canvas id="grafico"></canvas>
+      </div>
+    </div>
 
-    <!-- FORM ENTRADA -->
-    <section class="bg-gray-900 rounded-2xl p-5 shadow-lg">
-      <h3 class="text-lg font-semibold mb-4 text-green-400">Nova Entrada</h3>
-      <input id="entrada-desc" placeholder="Descrição" class="w-full p-3 mb-3 rounded-xl bg-black text-white border border-gray-700 outline-none" />
-      <input id="entrada-valor" type="number" placeholder="Valor" class="w-full p-3 mb-3 rounded-xl bg-black text-white border border-gray-700 outline-none" />
-      <button onclick="addEntrada()" class="bg-green-600 hover:bg-green-700 w-full py-3 rounded-full font-semibold">Adicionar Entrada</button>
-    </section>
+    <!-- Extrato -->
+    <div id="extrato" class="hidden">
+      <h2 class="text-xl font-bold mb-4">Extrato</h2>
+      <ul id="extrato-lista" class="space-y-2"></ul>
+    </div>
 
-    <!-- FORM SAÍDA -->
-    <section class="bg-gray-900 rounded-2xl p-5 shadow-lg">
-      <h3 class="text-lg font-semibold mb-4 text-red-400">Nova Saída</h3>
-      <input id="saida-desc" placeholder="Descrição" class="w-full p-3 mb-3 rounded-xl bg-black text-white border border-gray-700 outline-none" />
-      <input id="saida-valor" type="number" placeholder="Valor" class="w-full p-3 mb-3 rounded-xl bg-black text-white border border-gray-700 outline-none" />
-      <button onclick="addSaida()" class="bg-red-600 hover:bg-red-700 w-full py-3 rounded-full font-semibold">Adicionar Saída</button>
-    </section>
-  </main>
+    <!-- Relatórios -->
+    <div id="relatorios" class="hidden">
+      <h2 class="text-xl font-bold mb-4">Relatórios</h2>
+      <canvas id="grafico-relatorio"></canvas>
+    </div>
 
-  <!-- FOOTER MENU -->
-  <footer id="footer-menu" class="hidden bg-black/90 backdrop-blur-md border-t border-gray-800 p-3 flex justify-around text-gray-400">
-    <button onclick="showDashboard()" class="hover:text-white">🏠</button>
-    <button onclick="document.querySelector('#entrada-desc').focus()" class="hover:text-green-400">➕</button>
-    <button onclick="loadRelatorio()" class="hover:text-purple-400">📊</button>
+    <!-- Metas -->
+    <div id="metas" class="hidden">
+      <h2 class="text-xl font-bold mb-4">Metas</h2>
+      <p class="text-gray-400">🚧 Em construção</p>
+    </div>
+
+    <!-- Perfil -->
+    <div id="perfil" class="hidden">
+      <h2 class="text-xl font-bold mb-4">Perfil</h2>
+      <p id="user-email" class="mb-4"></p>
+      <button onclick="logout()" class="bg-red-600 p-2 rounded w-full">Sair</button>
+    </div>
+  </section>
+
+  <!-- Footer Menu -->
+  <footer id="footer-menu" class="hidden fixed bottom-0 w-full bg-gray-800 flex justify-around p-3">
+    <button onclick="showTab('dashboard')" class="text-sm">🏠</button>
+    <button onclick="showTab('extrato')" class="text-sm">📜</button>
+    <button onclick="showTab('relatorios')" class="text-sm">📊</button>
+    <button onclick="showTab('metas')" class="text-sm">🎯</button>
+    <button onclick="showTab('perfil')" class="text-sm">👤</button>
   </footer>
 </body>
 </html>
