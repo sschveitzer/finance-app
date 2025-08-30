@@ -1,44 +1,107 @@
+/* ================================
+   Estilos customizados Finance App
+   ================================ */
+
+/* Fundo com gradiente roxo */
 body {
-  margin: 0;
+  background: linear-gradient(135deg, #1e1b2e, #2a193d);
   font-family: 'Inter', sans-serif;
-  background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
-  color: white;
+  color: #fff;
+  min-height: 100vh;
 }
 
-header {
-  background: #121212;
-  padding: 1rem;
-  text-align: center;
-  font-weight: bold;
-  font-size: 1.2rem;
-  border-bottom: 1px solid #2a2a2a;
-}
-
+/* Cartões (caixas de conteúdo) */
 .card {
-  background: #1e1e1e;
-  margin: 1rem;
-  padding: 1.5rem;
-  border-radius: 20px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  background: #2d2a3d;
+  border-radius: 1rem;
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-button {
-  background: #820AD1; /* roxo Nubank */
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+}
+
+/* Botões principais */
+.btn {
+  display: inline-block;
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.btn-purple {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
   color: white;
-  border: none;
-  border-radius: 30px;
-  padding: 0.8rem 1.2rem;
-  font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.3s;
 }
 
-button:hover {
-  background: #5e0e99;
+.btn-purple:hover {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  transform: scale(1.02);
 }
 
-.saldo {
-  font-size: 2rem;
+.btn-green {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+}
+
+.btn-green:hover {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  transform: scale(1.02);
+}
+
+.btn-red {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+}
+
+.btn-red:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  transform: scale(1.02);
+}
+
+/* Inputs */
+input {
+  background: #3b3a4e;
+  border: 1px solid #4b4b61;
+  border-radius: 0.5rem;
+  padding: 0.6rem;
+  color: white;
+  width: 100%;
+  transition: border 0.2s ease;
+}
+
+input:focus {
+  outline: none;
+  border-color: #8b5cf6;
+}
+
+/* Header */
+.topbar {
+  background: #1f1d2b;
+  padding: 1rem;
   font-weight: bold;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+/* Navegação inferior (footer) */
+footer {
+  background: #1f1d2b;
+  padding: 0.75rem;
+  display: flex;
+  justify-content: space-around;
+  border-top: 1px solid #2f2d3b;
+}
+
+footer button {
+  font-size: 1.2rem;
+  color: #a78bfa;
+  transition: color 0.2s ease;
+}
+
+footer button:hover {
+  color: #c4b5fd;
 }
