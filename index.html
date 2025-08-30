@@ -1,179 +1,97 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <link rel="icon" href="data:,">
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>FinanceAPP V3.7.10</title>
-  
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Ícones -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
-  <!-- Chart.js -->
-  
-  <!-- CSS externo -->
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>App Financeiro</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <link rel="icon" href="data:,">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FinanceAPP V3.7.10</title>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <h1>App Financeiro</h1>
 
-
-</head>
-<body>
-  <div class="nav">
-    <div class="wrap">
-      <div class="badge"><i class="ph ph-wallet"></i> FinanceAPP <span style="opacity:.9;font-weight:600">V3.7.10</span></div>
-      <div class="tabs">
-        <button class="tab active" data-tab="dashboard">Dashboard</button>
-        <button class="tab" data-tab="lancamentos">Lançamentos</button>
-        <button class="tab" data-tab="categorias">Categorias</button>
-        <button class="tab" data-tab="relatorios">Relatórios</button>
-        <button class="tab" data-tab="config">Config</button>
-      </div>
-      <div class="right">
-        <select id="monthSelect" title="Mês"></select>
-        <label class="switch"><input type="checkbox" id="toggleHide"> Esconder valores</label>
-        <button class="icon" id="toggleDark" title="Dark"><i class="ph ph-moon"></i></button>
-      </div>
-    </div>
+  <div id="auth">
+    <h2>Login</h2>
+    <input id="email" type="email" placeholder="Email" />
+    <input id="password" type="password" placeholder="Senha" />
+    <button onclick="login()">Entrar</button>
+    <button onclick="signup()">Cadastrar</button>
   </div>
 
-  <div class="container">
-    <section id="dashboard" class="active">
-      <div class="grid cards">
-        <div class="card">
-          <div class="kpi earn">
-            <i class="ph ph-trend-up icon"></i>
-            <div><div class="muted">Receitas (mês)</div><div id="kpiReceitas" class="value">R$ 0,00</div></div>
-            <span class="chip" style="margin-left:auto" id="kpiReceitasDelta">+0.0%</span>
-          </div>
-        </div>
-        <div class="card">
-          <div class="kpi exp">
-            <i class="ph ph-trend-down icon"></i>
-            <div><div class="muted">Despesas (mês)</div><div id="kpiDespesas" class="value">R$ 0,00</div></div>
-            <span class="chip" style="margin-left:auto" id="kpiDespesasDelta">+0.0%</span>
-          </div>
-        </div>
-        <div class="card">
-          <div class="kpi balance">
-            <i class="ph ph-wallet icon"></i>
-            <div><div class="muted">Saldo (mês)</div><div id="kpiSaldo" class="value">R$ 0,00</div></div>
-            <span class="chip" style="margin-left:auto" id="kpiSaldoDelta">+0.0%</span>
-          </div>
-        </div>
-      </div>
-      <div class="grid two" style="margin-top:16px">
-        <div class="card"><h3>Saldo acumulado (12 meses)</h3><canvas id="chartSaldo"></canvas><div class="muted" style="text-align:right;margin-top:6px">Dados reais</div></div>
-        <div class="card"><h3>Despesas por categoria</h3><canvas id="chartPie"></canvas><div class="muted" style="text-align:right;margin-top:6px">Mês atual</div></div>
-      </div>
-      <div class="card" style="margin-top:16px">
-        <h3>Últimos lançamentos</h3>
-        <div style="display:flex;gap:10px;margin-bottom:10px">
-          <select id="filterTipo"><option value="todos">Todos</option><option value="Receita">Receitas</option><option value="Despesa">Despesas</option><option value="Transferência">Transferências</option></select>
-          <input type="text" id="searchLanc" placeholder="Buscar...">
-        </div>
-        <ul id="listaRecentes" class="list"></ul>
-      </div>
-    </section>
+  <div id="app" style="display:none;">
+    <h2>Bem-vindo!</h2>
+    <button onclick="logout()">Sair</button>
+    <h3>Lançar Entrada</h3>
+    <input id="descEntrada" placeholder="Descrição" />
+    <input id="valorEntrada" type="number" placeholder="Valor" />
+    <button onclick="addEntrada()">Salvar Entrada</button>
 
-    <section id="lancamentos">
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center"><h3>Lançamentos</h3><button class="btn" id="btnAddLanc">Novo lançamento</button></div>
-        <ul id="listaLanc" class="list" style="margin-top:12px"></ul>
-      </div>
-    </section>
-
-    <section id="categorias">
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center"><h3>Categorias</h3>
-          <div style="display:flex;gap:8px"><input id="newCatName" placeholder="Nova categoria..."><button class="btn" id="btnAddCat">Adicionar</button></div>
-        </div>
-        <ul id="listaCats" class="list" style="margin-top:12px"></ul>
-      </div>
-    </section>
-
-    <section id="relatorios">
-      <div class="grid two">
-        <div class="card"><h3>Fluxo por mês</h3><canvas id="chartFluxo"></canvas></div>
-        <div class="card"><h3>Top categorias (12 meses)</h3>
-          <table id="tblTop"><thead><tr><th>Categoria</th><th>Total</th></tr></thead><tbody></tbody></table>
-        </div>
-      </div>
-    </section>
-
-    <section id="config">
-      <div class="card">
-        <h3>Backup</h3>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn secondary" id="btnExport">Exportar</button>
-          <label class="btn secondary" for="fileImport" style="cursor:pointer;display:inline-flex;align-items:center;gap:8px">Importar</label>
-          <input type="file" id="fileImport" accept="application/json" style="display:none">
-          <button class="btn" id="btnReset" style="background:#ef4444">Resetar tudo</button>
-        </div>
-      </div>
-    </section>
+    <h3>Minhas Entradas</h3>
+    <ul id="listaEntradas"></ul>
   </div>
 
-  <div class="modal" id="modalLanc">
-    <div class="content">
-      <div class="title"><h3 id="modalTitle">Nova Despesa</h3><button class="close icon" id="closeModal"><i class="ph ph-x"></i></button></div>
-      <input id="mValorBig" class="amount" placeholder="R$ 0,00" inputmode="numeric" autocomplete="off">
-      <div class="typetabs" id="tipoTabs"><button type="button" data-type="Despesa" class="active">Despesa</button><button type="button" data-type="Receita">Receita</button><button type="button" data-type="Transferência">Transferência</button></div>
-      <div class="row3">
-        <div><label>Categoria</label><select id="mCategoria"></select></div>
-        <div><label>Data</label><input type="date" id="mData"></div>
-        <div><label>Descrição</label><input type="text" id="mDesc" placeholder="Descrição (Ex.: Mercado, Salário)"></div>
-      </div>
-      <div style="margin-top:10px"><label>Observações</label><textarea id="mObs" rows="3" placeholder="Opcional"></textarea></div>
-      <div class="actions"><div class="left">Atalhos: <b>N</b> novo • <b>Enter</b> salvar • <b>Esc</b> cancelar</div>
-        <div class="right"><button class="btn-cancel" id="btnCancelLanc">Cancelar</button><button class="btn-save" id="btnSaveLanc">Salvar</button></div>
-      </div>
-    </div>
-  </div>
+  <script>
+    const SUPABASE_URL = "https://SEU-PROJETO.supabase.co";
+    const SUPABASE_KEY = "chave-anon-do-supabase";
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  <button class="fab" id="fab" title="Nova despesa"><i class="ph ph-plus"></i></button>
+    async function login() {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value
+      });
+      if (error) alert(error.message);
+      else checkUser();
+    }
 
+    async function signup() {
+      const { data, error } = await supabase.auth.signUp({
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value
+      });
+      if (error) alert(error.message);
+      else alert("Cadastro realizado! Verifique o email.");
+    }
 
+    async function logout() {
+      await supabase.auth.signOut();
+      checkUser();
+    }
 
-  <!-- Biblioteca Supabase -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    async function addEntrada() {
+      const desc = document.getElementById("descEntrada").value;
+      const valor = parseFloat(document.getElementById("valorEntrada").value);
 
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      const { data, error } = await supabase.from("entradas").insert([{ descricao: desc, valor }]);
+      if (error) alert(error.message);
+      else loadEntradas();
+    }
 
-  <!-- Seu app -->
-  <script src="app.js" defer></script>
+    async function loadEntradas() {
+      const { data, error } = await supabase.from("entradas").select("* order by data desc");
+      if (error) alert(error.message);
+      else {
+        const lista = document.getElementById("listaEntradas");
+        lista.innerHTML = "";
+        data.forEach(e => {
+          const li = document.createElement("li");
+          li.textContent = `${e.descricao} - R$${e.valor}`;
+          lista.appendChild(li);
+        });
+      }
+    }
 
-</body>
-</html>
+    async function checkUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        document.getElementById("auth").style.display = "none";
+        document.getElementById("app").style.display = "block";
+        loadEntradas();
+      } else {
+        document.getElementById("auth").style.display = "block";
+        document.getElementById("app").style.display = "none";
+      }
+    }
 
-
-  <!-- Supabase client -->
-  
-  
-
-  <!-- Script externo -->
-  
-
-  <!-- Biblioteca Supabase -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- Seu app -->
-  <script src="app.js" defer></script>
-
+    checkUser();
+  </script>
 </body>
 </html>
