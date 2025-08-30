@@ -1,4 +1,7 @@
 window.onload = function() {
+// Helpers rápidos
+function qs(sel) { return document.querySelector(sel); }
+function qsa(sel) { return document.querySelectorAll(sel); }  
   // O objeto 'supabase' já está globalmente disponível após o carregamento do CDN
   const db = supabase.createClient(
     'https://ppoufxezqmbxzflijmpx.supabase.co',
@@ -249,3 +252,4 @@ window.onload = function() {
   // ======== Inicialização ========
   loadAll();
 };
+
