@@ -1,9 +1,6 @@
 window.onload = function () {
-  // Inicializa o Supabase (global no CDN)
-  const supabaseClient = window.supabase.createClient(
-    "https://ppoufxezqmbxzflijmpx.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwb3VmeGV6cW1ieHpmbGlqbXB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1NzY1MTgsImV4cCI6MjA3MjE1MjUxOH0.7wntt2EbXsb16Zob9F81XFUKognKHKn0jxP6UdfF_ZY"
-  );
+  // Usa o supabase já criado no dashboard.html
+  const supabaseClient = window.supabaseClient || supabase;
 
   // Estado global
   let S = {
@@ -409,3 +406,4 @@ window.onload = function () {
   // ========= START =========
   loadAll();
 };
+
