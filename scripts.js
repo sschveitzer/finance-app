@@ -233,6 +233,13 @@ window.onload = function() {
     return isFinite(n) ? n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00';
   }
 
+  function render() {
+    renderRecentes();
+    renderLancamentos();
+    // aqui você pode chamar outras funções de render se tiver (ex: KPIs, gráficos etc)
+  }
+  
   // ======== Inicialização ========
   loadAll();
 };
+
