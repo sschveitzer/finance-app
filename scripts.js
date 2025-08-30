@@ -1,30 +1,33 @@
-window.onload = function() {
-  // Inicializar Supabase (via CDN global)
+window.onload = function () {
+  // =================== SUPABASE CLIENT ===================
   const supabase = window.supabase.createClient(
     'https://ppoufxezqmbxzflijmpx.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwb3VmeGV6cW1ieHpmbGlqbXB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1NzY1MTgsImV4cCI6MjA3MjE1MjUxOH0.7wntt2EbXsb16Zob9F81XFUKognKHKn0jxP6UdfF_ZY'
   );
 
-  // Estado global
   let S = { month: nowYMD().slice(0, 7), hide: false, dark: false, editingId: null, tx: [], cats: [] };
-  let modalTipo = "Despesa";
+  let modalTipo = 'Despesa';
 
-  // Helpers
+  // =================== HELPERS ===================
   function gid() { return Math.random().toString(36).slice(2, 9); }
   function nowYMD() { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); }
   function isIsoDate(s) { return /^\d{4}-\d{2}-\d{2}$/.test(s); }
   function qs(sel) { return document.querySelector(sel); }
-  function qsa(sel) { return [...document.querySelectorAll(sel)]; }
+  function qsa(sel) { return document.querySelectorAll(sel); }
   function fmtMoney(v) { const n = Number(v); return isFinite(n) ? n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00'; }
+  function parseMoneyMasked(str) {
+    if (!str) return 0;
+    return Number(String(str).replace(/[^\d,-]/g, '').replace(',', '.')) || 0;
+  }
 
-  // Converte objeto de transação em formato correto
+  // =================== NORMALIZAÇÃO ===================
   function normalizeTx(t) {
     if (!t) return null;
     const id = t.id || gid();
     const tipo = (t.tipo === 'Receita' || t.tipo === 'Despesa' || t.tipo === 'Transferência') ? t.tipo : 'Despesa';
     const categoria = (t.categoria && String(t.categoria).trim()) ? String(t.categoria).trim() : '';
     const data = isIsoDate(t.data) ? t.data : nowYMD();
-    const valor = (typeof t.valor === 'number') ? t.valor : parseFloat(t.valor);
+    const valor = (typeof t.valor === 'number') ? t.valor : parseMoneyMasked(t.valor);
     const v = isFinite(valor) ? valor : 0;
     const descricao = (t.descricao != null) ? String(t.descricao).trim() : '';
     return categoria ? { id, tipo, categoria, data, descricao, valor: v, obs: t.obs ? String(t.obs) : '' } : null;
@@ -34,53 +37,40 @@ window.onload = function() {
   async function loadAll() {
     // Transações
     const { data: tx, error: txError } = await supabase.from('transactions').select('*');
-    S.tx = txError ? [] : tx.map(normalizeTx).filter(Boolean);
+    if (txError) { console.error('Erro ao carregar transações:', txError); S.tx = []; }
+    else { S.tx = tx.map(normalizeTx).filter(Boolean); }
 
     // Categorias
     const { data: cats, error: catsError } = await supabase.from('categories').select('*');
-    S.cats = catsError ? [] : cats;
+    if (catsError) { console.error('Erro ao carregar categorias:', catsError); S.cats = []; }
+    else { S.cats = cats; }
 
-    // Preferências
-    const { data: prefs, error: prefsError } = await supabase.from('preferences').select('*').eq('id', 1).single();
-    if (!prefsError && prefs) {
-      S.month = prefs.month;
-      S.hide = prefs.hide;
-      S.dark = prefs.dark;
-    }
-
-    // Se não houver categorias, cria padrão
-    if (S.cats.length === 0) {
-      S.cats = [
-        { id: gid(), nome: 'Alimentação', cor: '#60a5fa' },
-        { id: gid(), nome: 'Moradia', cor: '#f59e0b' }
-      ];
-      saveCatsToSupabase();
+    // Preferências (pega só 1 registro)
+    const { data: prefs, error: prefsError } = await supabase.from('preferences').select('*').limit(1).maybeSingle();
+    if (prefsError) {
+      console.error('Erro ao carregar preferências:', prefsError);
+      S.month = nowYMD().slice(0, 7); S.hide = false; S.dark = false;
+    } else if (prefs) {
+      S.month = prefs.month; S.hide = prefs.hide; S.dark = prefs.dark;
     }
 
     render();
   }
-
   // =================== SAVE DATA ===================
   async function saveTxToSupabase() {
     const { error } = await supabase.from('transactions').upsert(S.tx);
     if (error) console.error('Erro ao salvar transações:', error);
   }
-
   async function saveCatsToSupabase() {
     const { error } = await supabase.from('categories').upsert(S.cats);
     if (error) console.error('Erro ao salvar categorias:', error);
   }
-
   async function savePrefsToSupabase() {
-    const { error } = await supabase.from('preferences').upsert([{ id: 1, month: S.month, hide: S.hide, dark: S.dark }]);
+    const { error } = await supabase.from('preferences').upsert([{ month: S.month, hide: S.hide, dark: S.dark }]);
     if (error) console.error('Erro ao salvar preferências:', error);
   }
-  // =================== UI HELPERS ===================
-  function setTab(name) {
-    qsa('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
-    qsa('section').forEach(s => s.classList.toggle('active', s.id === name));
-  }
 
+  // =================== UI: MODAL ===================
   function toggleModal(show, titleOverride) {
     const m = qs('#modalLanc');
     m.style.display = show ? 'flex' : 'none';
@@ -101,9 +91,7 @@ window.onload = function() {
 
   function syncTipoTabs() {
     qsa('#tipoTabs button').forEach(b => b.classList.toggle('active', b.dataset.type === modalTipo));
-    if (!S.editingId) {
-      qs('#modalTitle').textContent = 'Nova ' + modalTipo;
-    }
+    if (!S.editingId) qs('#modalTitle').textContent = 'Nova ' + modalTipo;
   }
 
   function rebuildCatSelect(selected) {
@@ -111,16 +99,15 @@ window.onload = function() {
     sel.innerHTML = '<option value="">Selecione…</option>';
     S.cats.forEach(c => {
       const o = document.createElement('option');
-      o.value = c.nome;
-      o.textContent = c.nome;
+      o.value = c.nome; o.textContent = c.nome;
       if (c.nome === selected) o.selected = true;
       sel.append(o);
     });
   }
 
-  // Adicionar ou atualizar transação
+  // =================== CRUD TX ===================
   async function addOrUpdate() {
-    const valor = parseFloat(qs('#mValorBig').value.replace(/[^\d,-]/g, '').replace(',', '.')) || 0;
+    const valor = parseMoneyMasked(qs('#mValorBig').value);
     const t = {
       id: S.editingId || gid(),
       tipo: modalTipo,
@@ -137,8 +124,7 @@ window.onload = function() {
     if (S.editingId) await supabase.from('transactions').upsert([t]);
     else await supabase.from('transactions').insert([t]);
 
-    loadAll();
-    toggleModal(false);
+    loadAll(); toggleModal(false);
   }
 
   async function delTx(id) {
@@ -147,7 +133,6 @@ window.onload = function() {
       loadAll();
     }
   }
-
   // =================== RENDER ===================
   function renderRecentes() {
     const ul = qs('#listaRecentes');
@@ -168,15 +153,13 @@ window.onload = function() {
     li.className = 'item';
     const v = isFinite(Number(x.valor)) ? Number(x.valor) : 0;
     const actions = readOnly ? '' : `
-      <button class="icon edit" title="Editar"><i class="ph ph-pencil-simple"></i></button>
-      <button class="icon del" title="Excluir"><i class="ph ph-trash"></i></button>`;
+      <button class="icon edit"><i class="ph ph-pencil-simple"></i></button>
+      <button class="icon del"><i class="ph ph-trash"></i></button>`;
     li.innerHTML = `
       <div class="left">
         <div class="tag">${x.tipo}</div>
-        <div>
-          <div><strong>${x.descricao || '-'}</strong></div>
-          <div class="muted" style="font-size:12px">${x.categoria} • ${x.data}</div>
-        </div>
+        <div><strong>${x.descricao || '-'}</strong></div>
+        <div class="muted" style="font-size:12px">${x.categoria} • ${x.data}</div>
       </div>
       <div style="display:flex;gap:6px;align-items:center">
         <div class="${S.hide ? 'blurred' : ''}" style="font-weight:700">${fmtMoney(v)}</div>${actions}
@@ -203,19 +186,19 @@ window.onload = function() {
     qs('#modalLanc').style.display = 'flex';
     setTimeout(() => qs('#mValorBig').focus(), 0);
   }
-  // =================== DASHBOARD ===================
-  function renderKpis() {
-    const receitas = S.tx.filter(t => t.tipo === 'Receita' && t.data.startsWith(S.month)).reduce((s, t) => s + t.valor, 0);
-    const despesas = S.tx.filter(t => t.tipo === 'Despesa' && t.data.startsWith(S.month)).reduce((s, t) => s + t.valor, 0);
-    const saldo = receitas - despesas;
 
+  // =================== RELATÓRIOS & KPI ===================
+  function renderKpis() {
+    const receitas = S.tx.filter(t => t.tipo === 'Receita' && t.data.startsWith(S.month))
+                         .reduce((s, t) => s + t.valor, 0);
+    const despesas = S.tx.filter(t => t.tipo === 'Despesa' && t.data.startsWith(S.month))
+                         .reduce((s, t) => s + t.valor, 0);
     qs('#kpiReceitas').textContent = fmtMoney(receitas);
     qs('#kpiDespesas').textContent = fmtMoney(despesas);
-    qs('#kpiSaldo').textContent = fmtMoney(saldo);
+    qs('#kpiSaldo').textContent = fmtMoney(receitas - despesas);
   }
 
   function renderChartSaldo() {
-    const ctx = qs('#chartSaldo').getContext('2d');
     const meses = [], valores = [];
     for (let i = 11; i >= 0; i--) {
       const d = new Date(); d.setMonth(d.getMonth() - i);
@@ -224,27 +207,28 @@ window.onload = function() {
       const despesas = S.tx.filter(t => t.tipo === 'Despesa' && t.data.startsWith(ym)).reduce((s, t) => s + t.valor, 0);
       meses.push(ym); valores.push(receitas - despesas);
     }
-    new Chart(ctx, { type: 'line', data: { labels: meses, datasets: [{ label: 'Saldo', data: valores }] } });
+    new Chart(qs('#chartSaldo'), { type: 'line', data: { labels: meses, datasets: [{ label: 'Saldo', data: valores }] } });
   }
 
   function renderChartPie() {
-    const ctx = qs('#chartPie').getContext('2d');
     const categorias = {};
-    S.tx.filter(t => t.tipo === 'Despesa' && t.data.startsWith(S.month)).forEach(t => { categorias[t.categoria] = (categorias[t.categoria] || 0) + t.valor; });
-    new Chart(ctx, { type: 'pie', data: { labels: Object.keys(categorias), datasets: [{ data: Object.values(categorias) }] } });
+    S.tx.filter(t => t.tipo === 'Despesa' && t.data.startsWith(S.month))
+        .forEach(t => { categorias[t.categoria] = (categorias[t.categoria] || 0) + t.valor; });
+    new Chart(qs('#chartPie'), { type: 'pie', data: { labels: Object.keys(categorias), datasets: [{ data: Object.values(categorias) }] } });
   }
 
   function renderTopCategorias() {
-    const soma = {};
-    const cutoff = new Date(); cutoff.setMonth(cutoff.getMonth() - 12);
-    S.tx.filter(t => new Date(t.data) >= cutoff && t.tipo === 'Despesa').forEach(t => { soma[t.categoria] = (soma[t.categoria] || 0) + t.valor; });
+    const soma = {}, cutoff = new Date(); cutoff.setMonth(cutoff.getMonth() - 12);
+    S.tx.filter(t => new Date(t.data) >= cutoff && t.tipo === 'Despesa')
+        .forEach(t => { soma[t.categoria] = (soma[t.categoria] || 0) + t.valor; });
     const tbody = qs('#tblTop tbody'); tbody.innerHTML = '';
     Object.entries(soma).sort((a, b) => b[1] - a[1]).forEach(([cat, total]) => {
-      const tr = document.createElement('tr'); tr.innerHTML = `<td>${cat}</td><td>${fmtMoney(total)}</td>`; tbody.append(tr);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${cat}</td><td>${fmtMoney(total)}</td>`;
+      tbody.append(tr);
     });
   }
 
-  // =================== RENDER ROOT ===================
   function render() {
     renderRecentes();
     renderLancamentos();
@@ -254,14 +238,20 @@ window.onload = function() {
     renderTopCategorias();
   }
 
-  // =================== EVENTOS DE NAVEGAÇÃO ===================
-  qsa('.tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      setTab(btn.dataset.tab);
-    });
-  });
-  
-  // =================== INIT ===================
+  // =================== EVENTOS ===================
+  qsa('.tab').forEach(btn => btn.addEventListener('click', () => setTab(btn.dataset.tab)));
+  qs('#fab').addEventListener('click', () => { modalTipo = 'Despesa'; toggleModal(true, 'Nova Despesa'); });
+  qs('#btnNovo').addEventListener('click', () => { modalTipo = 'Despesa'; toggleModal(true, 'Nova Despesa'); });
+  qs('#closeModal').addEventListener('click', () => toggleModal(false));
+  qs('#cancelar').addEventListener('click', () => toggleModal(false));
+  qs('#salvar').addEventListener('click', () => addOrUpdate());
+  qsa('#tipoTabs button').forEach(btn => btn.addEventListener('click', () => { modalTipo = btn.dataset.type; syncTipoTabs(); }));
+
+  function setTab(name) {
+    qsa('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+    qsa('section').forEach(s => s.classList.toggle('active', s.id === name));
+  }
+
+  // =================== START ===================
   loadAll();
 };
-
