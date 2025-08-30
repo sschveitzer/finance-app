@@ -32,14 +32,11 @@
 
   <!-- App -->
   <section id="app-section" class="hidden flex flex-col flex-1">
-    
-    <!-- Topbar -->
     <div class="topbar flex justify-between items-center">
       <h2 class="text-xl text-purple-400">💰 Finance App</h2>
       <button onclick="logout()" class="btn btn-red">Sair</button>
     </div>
 
-    <!-- Navegação -->
     <nav class="flex justify-around bg-gray-800 p-2">
       <button onclick="showTab('dashboard')" class="text-purple-400 hover:text-purple-500">Dashboard</button>
       <button onclick="showTab('extrato')" class="text-purple-400 hover:text-purple-500">Extrato</button>
@@ -48,10 +45,7 @@
       <button onclick="showTab('perfil')" class="text-purple-400 hover:text-purple-500">Perfil</button>
     </nav>
 
-    <!-- Conteúdo -->
     <main class="flex-1 overflow-y-auto p-4 space-y-6">
-
-      <!-- Dashboard -->
       <section id="dashboard">
         <div class="card mb-4">
           <h3 class="text-lg font-semibold mb-4">Visão Geral</h3>
@@ -61,37 +55,10 @@
         </div>
       </section>
 
-      <!-- Extrato -->
-      <section id="extrato" class="hidden">
-        <h3 class="text-lg font-semibold mb-4">Extrato</h3>
-        
-        <!-- Form Entradas -->
-        <div class="card mb-4">
-          <h4 class="font-bold mb-2 text-green-400">Adicionar Entrada</h4>
-          <input id="entrada-desc" type="text" placeholder="Descrição" class="mb-2" />
-          <input id="entrada-valor" type="number" placeholder="Valor" class="mb-2" />
-          <input id="entrada-cat" type="text" placeholder="Categoria (ex: Salário)" class="mb-2" />
-          <button onclick="adicionarEntrada()" class="btn btn-green w-full">Adicionar</button>
-        </div>
-
-        <!-- Form Saídas -->
-        <div class="card mb-4">
-          <h4 class="font-bold mb-2 text-red-400">Adicionar Saída</h4>
-          <input id="saida-desc" type="text" placeholder="Descrição" class="mb-2" />
-          <input id="saida-valor" type="number" placeholder="Valor" class="mb-2" />
-          <input id="saida-cat" type="text" placeholder="Categoria (ex: Mercado)" class="mb-2" />
-          <button onclick="adicionarSaida()" class="btn btn-red w-full">Adicionar</button>
-        </div>
-
-        <!-- Lista -->
-        <ul id="extrato-lista" class="space-y-2"></ul>
-      </section>
-
-      <!-- Relatórios -->
       <section id="relatorios" class="hidden space-y-6">
         <div class="card">
           <h4 class="font-bold mb-2 text-purple-400">Entradas x Saídas (Mensal)</h4>
-          <canvas id="grafico-relatorio" height="100"></canvas>
+          <canvas id="grafico" height="100"></canvas>
         </div>
 
         <div class="card">
@@ -99,26 +66,10 @@
           <canvas id="grafico-categorias" height="100"></canvas>
         </div>
       </section>
-
-      <!-- Metas -->
-      <section id="metas" class="hidden">
-        <div class="card">
-          <h3 class="text-lg font-semibold">Metas</h3>
-          <p class="text-gray-400">Em breve: defina metas financeiras.</p>
-        </div>
-      </section>
-
-      <!-- Perfil -->
-      <section id="perfil" class="hidden">
-        <div class="card">
-          <h3 class="text-lg font-semibold">Perfil</h3>
-          <p class="text-gray-400">Em breve: dados da conta.</p>
-        </div>
-      </section>
     </main>
   </section>
 
   <!-- Script -->
-  <script src="js/app.js"></script>
+  <script src="js/app.js" defer></script>
 </body>
 </html>
