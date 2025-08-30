@@ -27,7 +27,7 @@
   .tag{padding:4px 8px;border-radius:999px;background:var(--chip);font-size:12px}
   .fab{position:fixed;right:26px;bottom:26px;background:#ef4444;border:none;border-radius:999px;width:56px;height:56px;display:grid;place-items:center;color:#fff;font-size:28px;box-shadow:0 10px 24px rgba(239,68,68,.4);cursor:pointer}
   .modal{position:fixed;inset:0;background:rgba(3,6,23,.55);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:20px}
-  .modal .content{background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);width:min(720px,96%);padding:18px}
+  .modal-content{background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);width:min(720px,96%);padding:18px}
   .modal .title{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
   .modal .amount{text-align:center;font-size:32px;font-weight:800;letter-spacing:.5px;padding:8px 12px;border-radius:14px;border:1px dashed var(--border);background:var(--bg-soft);width:100%}
   .typetabs{display:flex;gap:8px;justify-content:center;margin:12px 0}
@@ -40,3 +40,25 @@
   section{display:none} section.active{display:block}
   .blurred{filter:blur(8px)}
   table{width:100%;border-collapse:collapse} th,td{padding:8px;border-bottom:1px dashed var(--border);text-align:left; font-size:14px}
+
+/* Correções para tipoTabs */
+#tipoTabs button.active[data-type="Receita"] { background: var(--green); color: #fff; }
+#tipoTabs button.active[data-type="Despesa"] { background: var(--red); color: #fff; }
+#tipoTabs button.active[data-type="Transferência"] { background: var(--blue); color: #fff; }
+
+
+/* Correções para listas */
+#listaLanc li, #listaCats li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .75rem 1rem;
+  background: var(--card);
+  border-radius: .75rem;
+  margin-bottom: .5rem;
+  cursor: pointer;
+  transition: background .2s;
+}
+#listaLanc li:hover, #listaCats li:hover {
+  background: var(--hover);
+}
