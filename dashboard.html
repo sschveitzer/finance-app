@@ -131,28 +131,63 @@
     </section>
   </div>
 
-  <!-- Modal Lançamento -->
-  <div class="modal" id="modalLanc">
-    <div class="content">
+  <!-- Modal Lançamento (atualizado) -->
+  <div class="modal" id="modalLanc" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="content" tabindex="-1">
       <div class="title">
         <h3 id="modalTitle">Nova Despesa</h3>
-        <button class="close icon" id="closeModal"><i class="ph ph-x"></i></button>
+        <button class="close icon" id="closeModal" aria-label="Fechar"><i class="ph ph-x"></i></button>
       </div>
-      <input id="mValorBig" class="amount" placeholder="R$ 0,00" inputmode="numeric">
-      <div class="typetabs" id="tipoTabs">
-        <button type="button" data-type="Despesa" class="active">Despesa</button>
-        <button type="button" data-type="Receita">Receita</button>
-        <button type="button" data-type="Transferência">Transferência</button>
+
+      <div class="amount-wrap">
+        <label for="mValorBig" class="sr-only">Valor</label>
+        <input id="mValorBig" class="amount" placeholder="R$ 0,00" inputmode="numeric" autocomplete="off" aria-describedby="valorHelp">
+        <div id="valorHelp" class="helper">Use vírgula para centavos. Ex.: 125,90</div>
+
+        <div class="segmented" id="tipoTabs" role="tablist" aria-label="Tipo de lançamento">
+          <button type="button" role="tab" aria-selected="true" data-type="Despesa" class="active">Despesa</button>
+          <button type="button" role="tab" aria-selected="false" data-type="Receita">Receita</button>
+          <button type="button" role="tab" aria-selected="false" data-type="Transferência">Transferência</button>
+        </div>
       </div>
-      <div class="row3">
-        <div><label>Categoria</label><select id="mCategoria"></select></div>
-        <div><label>Data</label><input type="date" id="mData"></div>
-        <div><label>Descrição</label><input type="text" id="mDesc" placeholder="Descrição"></div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label for="mCategoria">Categoria</label>
+          <select id="mCategoria"></select>
+          <div class="helper">Escolha a categoria (digite para filtrar)</div>
+        </div>
+
+        <div class="field">
+          <label for="mData">Data</label>
+          <input type="date" id="mData">
+          <div class="helper">Padrão: hoje</div>
+        </div>
+
+        <div class="field span-2">
+          <label for="mDesc">Descrição</label>
+          <input type="text" id="mDesc" placeholder="Ex.: Supermercado, salário, TED...">
+        </div>
+
+        <div class="field span-2">
+          <label for="mObs">Observações</label>
+          <textarea id="mObs" rows="3" placeholder="Anotações opcionais"></textarea>
+        </div>
       </div>
-      <div style="margin-top:10px"><label>Observações</label><textarea id="mObs" rows="3"></textarea></div>
+
+      <div id="formError" class="error" role="alert" hidden></div>
+
       <div class="actions">
-        <div class="left">Atalhos: <b>N</b> novo • <b>Enter</b> salvar • <b>Esc</b> cancelar</div>
-        <div class="right"><button class="btn-cancel" id="cancelar">Cancelar</button><button class="btn-save" id="salvar">Salvar</button></div>
+        <div class="left">
+          Atalhos:
+          <span class="kbd">N</span> novo •
+          <span class="kbd">Enter</span> salvar •
+          <span class="kbd">Esc</span> cancelar
+        </div>
+        <div class="right">
+          <button class="btn-cancel" id="cancelar">Cancelar</button>
+          <button class="btn-save" id="salvar">Salvar</button>
+        </div>
       </div>
     </div>
   </div>
@@ -163,18 +198,12 @@
   <!-- JS: checagem de sessão -->
   <script>
     const supabase = window.supabase.createClient(
-      "https://ppoufxezqmbxzflijmpx.supabase.co", // seu Project URL
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwb3VmeGV6cW1ieHpmbGlqbXB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1NzY1MTgsImV4cCI6MjA3MjE1MjUxOH0.7wntt2EbXsb16Zob9F81XFUKognKHKn0jxP6UdfF_ZY"   // sua anon key
+      "https://ppoufxezqmbxzflijmpx.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwb3VmeGV6cW1ieHpmbGlqbXB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1NzY1MTgsImV4cCI6MjA3MjE1MjUxOH0.7wntt2EbXsb16Zob9F81XFUKognKHKn0jxP6UdfF_ZY"
     );
-
-    // Se não estiver logado → volta pro login
     supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
-        window.location.href = "index.html";
-      }
+      if (!data.session) window.location.href = "index.html";
     });
-
-    // Logout
     document.addEventListener("DOMContentLoaded", () => {
       const btnLogout = document.getElementById("logoutBtn");
       if (btnLogout) {
@@ -190,63 +219,3 @@
   <script src="scripts.js"></script>
 </body>
 </html>
-
-<div class="modal" id="modalLanc" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-  <div class="content" tabindex="-1">
-    <div class="title">
-      <h3 id="modalTitle">Nova Despesa</h3>
-      <button class="close icon" id="closeModal" aria-label="Fechar"><i class="ph ph-x"></i></button>
-    </div>
-
-    <div class="amount-wrap">
-      <label for="mValorBig" class="sr-only">Valor</label>
-      <input id="mValorBig" class="amount" placeholder="R$ 0,00" inputmode="numeric" autocomplete="off" aria-describedby="valorHelp">
-      <div id="valorHelp" class="helper">Use vírgula para centavos. Ex.: 125,90</div>
-
-      <div class="segmented" id="tipoTabs" role="tablist" aria-label="Tipo de lançamento">
-        <button type="button" role="tab" aria-selected="true" data-type="Despesa" class="active">Despesa</button>
-        <button type="button" role="tab" aria-selected="false" data-type="Receita">Receita</button>
-        <button type="button" role="tab" aria-selected="false" data-type="Transferência">Transferência</button>
-      </div>
-    </div>
-
-    <div class="form-grid">
-      <div class="field">
-        <label for="mCategoria">Categoria</label>
-        <select id="mCategoria"></select>
-        <div class="helper">Escolha a categoria (digite para filtrar)</div>
-      </div>
-
-      <div class="field">
-        <label for="mData">Data</label>
-        <input type="date" id="mData">
-        <div class="helper">Padrão: hoje</div>
-      </div>
-
-      <div class="field span-2">
-        <label for="mDesc">Descrição</label>
-        <input type="text" id="mDesc" placeholder="Ex.: Supermercado, salário, TED...">
-      </div>
-
-      <div class="field span-2">
-        <label for="mObs">Observações</label>
-        <textarea id="mObs" rows="3" placeholder="Anotações opcionais"></textarea>
-      </div>
-    </div>
-
-    <div id="formError" class="error" role="alert" hidden></div>
-
-    <div class="actions">
-      <div class="left">
-        Atalhos:
-        <span class="kbd">N</span> novo •
-        <span class="kbd">Enter</span> salvar •
-        <span class="kbd">Esc</span> cancelar
-      </div>
-      <div class="right">
-        <button class="btn-cancel" id="cancelar">Cancelar</button>
-        <button class="btn-save" id="salvar">Salvar</button>
-      </div>
-    </div>
-  </div>
-</div>
