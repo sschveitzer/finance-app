@@ -1,41 +1,76 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Login - FinanceAPP</title>
-  <link rel="icon" type="image/png" href="img/logo.png">
-  <link rel="stylesheet" href="styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Entrar</title>
+  <link rel="icon" type="image/jpeg" href="img/logo.jpeg">
+  <link rel="stylesheet" href="style.css">
 </head>
-<body style="display:flex;align-items:center;justify-content:center;height:100vh">
-  <div class="card" style="max-width:360px;width:100%">
-    <h2 style="margin-bottom:12px">Entrar</h2>
-    <form id="login-form" style="display:flex;flex-direction:column;gap:10px">
-      <input type="email" id="email" placeholder="Email" required>
-      <input type="password" id="password" placeholder="Senha" required>
-      <button class="btn" type="submit">Entrar</button>
+<body class="center">
+  <main class="login-card">
+    <img class="login-logo" src="img/logo.jpeg" alt="Logo do sistema">
+    <h2>Sistema de Gestão</h2>
+    <p class="subtitle">Faça seu login para acessar o Dashboard.</p>
+
+    <form id="form-login" novalidate>
+      <div class="form-field">
+        <label for="email">E-mail</label>
+        <div class="input">
+          <span class="i i-mail" aria-hidden="true"></span>
+          <input id="email" type="email" placeholder="voce@exemplo.com" required />
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="password">Senha</label>
+        <div class="input">
+          <span class="i i-lock" aria-hidden="true"></span>
+          <input id="password" type="password" placeholder="••••••••" required minlength="6" />
+        </div>
+      </div>
+
+      <button id="btn" class="btn btn-login" type="submit">Entrar</button>
+      <p id="msg" class="erro-msg"></p>
     </form>
-    <p id="errorMsg" style="color:red;font-size:13px;margin-top:8px"></p>
-  </div>
+  </main>
 
+  <footer><p>© 2025 Chama do Céu - Todos os direitos reservados | <a href="privacidade.html">Política de Privacidade</a></p></footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const supabase = window.supabase.createClient(
-      "https://ppoufxezqmbxzflijmpx.supabase.co", // ✅ seu Project URL
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwb3VmeGV6cW1ieHpmbGlqbXB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1NzY1MTgsImV4cCI6MjA3MjE1MjUxOH0.7wntt2EbXsb16Zob9F81XFUKognKHKn0jxP6UdfF_ZY"   // ✅ sua anon key
-    );
+    const SUPABASE_URL = 'https://ppoufxezqmbxzflijmpx.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwb3VmeGV6cW1ieHpmbGlqbXB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1NzY1MTgsImV4cCI6MjA3MjE1MjUxOH0.7wntt2EbXsb16Zob9F81XFUKognKHKn0jxP6UdfF_ZY';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true } });
 
-    document.getElementById("login-form").addEventListener("submit", async (e) => {
+    // redireciona se já logado
+    sb.auth.getUser().then(({ data:{ user } }) => { if (user) location.href = 'dashboard.html'; });
+
+    document.getElementById('form-login').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const msg = document.getElementById('msg');
+      msg.textContent = 'Entrando...';
+      msg.classList.remove('show');
 
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
+      const { error } = await sb.auth.signInWithPassword({ email, password });
       if (error) {
-        document.getElementById("errorMsg").textContent = "Erro: " + error.message;
-      } else {
-        window.location.href = "dashboard.html";
+        msg.textContent = 'Erro: ' + (error.message || 'login inválido');
+        msg.classList.add('show');
+        return;
       }
+
+      // whitelist
+      const wl = await sb.from('app_allowed_emails').select('email').eq('email', email.toLowerCase()).maybeSingle();
+      if (wl.error || !wl.data) {
+        await sb.auth.signOut();
+        msg.textContent = 'Acesso negado para este e-mail.';
+        msg.classList.add('show');
+        return;
+      }
+
+      location.href = 'dashboard.html';
     });
   </script>
 </body>
