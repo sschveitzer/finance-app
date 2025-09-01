@@ -3,81 +3,167 @@
 <head>
   <meta charset="UTF-8" />
   <title>Login - FinanceAPP</title>
+
+  <!-- Ícone -->
   <link rel="icon" type="image/png" href="img/logo.png" />
-  <link rel="stylesheet" href="styles.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
+
+  <!-- Preconnect para melhorar o carregamento do SDK -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+
+  <!-- Viewport e tema -->
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+
+  <!-- CSP básica (ajuste domínios se necessário) -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self';
+                 img-src 'self' data:;
+                 style-src 'self' 'unsafe-inline';
+                 script-src 'self' https://cdn.jsdelivr.net;
+                 connect-src 'self' https://*.supabase.co;
+                 font-src 'self' data:;
+                 frame-ancestors 'none';">
+
+  <!-- Estilos globais existentes -->
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- SDK Supabase -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 </head>
 <body class="auth-page">
-  <main class="card auth-card">
-    <img src="img/logo.png" alt="FinanceAPP" class="logo" />
+  <noscript>
+    <div class="card auth-card" style="margin:24px auto;max-width:360px">
+      Ative o JavaScript para usar o FinanceAPP.
+    </div>
+  </noscript>
 
-    <h2 class="auth-title">Entrar</h2>
+  <main class="card auth-card" role="main" aria-labelledby="auth-title">
+    <img src="img/logo.png" alt="FinanceAPP" class="logo" width="64" height="64" />
 
-    <form id="login-form" class="auth-form">
-      <label class="sr-only" for="email">Email</label>
-      <input type="email" id="email" placeholder="Email" required />
+    <h1 id="auth-title" class="auth-title">Entrar</h1>
 
-      <div class="input-group">
-        <label class="sr-only" for="password">Senha</label>
-        <input type="password" id="password" placeholder="Senha" required />
-        <button type="button" id="togglePass" class="icon ghost" aria-label="Mostrar senha">
-          👁️
-        </button>
+    <form id="login-form" class="auth-form" autocomplete="on" novalidate>
+      <div class="field">
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          inputmode="email"
+          autocomplete="username"
+          placeholder="voce@exemplo.com"
+          required
+          aria-required="true"
+          spellcheck="false" />
       </div>
 
-      <button class="btn" id="loginBtn" type="submit">Entrar</button>
-      <p id="statusMsg" class="status"></p>
+      <div class="field">
+        <label for="password">Senha</label>
+        <div class="input-group">
+          <input
+            type="password"
+            id="password"
+            autocomplete="current-password"
+            placeholder="Sua senha"
+            required
+            aria-required="true" />
+          <button
+            type="button"
+            id="togglePass"
+            class="icon ghost"
+            aria-label="Mostrar senha"
+            aria-pressed="false"
+            title="Mostrar/ocultar senha">
+            👁️
+          </button>
+        </div>
+      </div>
+
+      <button class="btn" id="loginBtn" type="submit" data-default-text="Entrar">
+        Entrar
+      </button>
+
+      <p id="statusMsg" class="status" aria-live="polite"></p>
+
+      <!-- Opcional: link de recuperação
+      <p class="helper"><a href="recuperar.html">Esqueci minha senha</a></p>
+      -->
     </form>
   </main>
 
   <script>
-    const supabase = window.supabase.createClient(
-      "https://ppoufxezqmbxzflijmpx.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwb3VmeGV6cW1ieHpmbGlqbXB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1NzY1MTgsImV4cCI6MjA3MjE1MjUxOH0.7wntt2EbXsb16Zob9F81XFUKognKHKn0jxP6UdfF_ZY"
-    );
+    // ⚠️ Observação: a chave "anon" do Supabase é pública por design.
+    // Ainda assim, prefira carregá-la via variável de ambiente no build.
+    const SUPABASE_URL = "https://ppoufxezqmbxzflijmpx.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwb3VmeGV6cW1ieHpmbGlqbXB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1NzY1MTgsImV4cCI6MjA3MjE1MjUxOH0.7wntt2EbXsb16Zob9F81XFUKognKHKn0jxP6UdfF_ZY";
 
-    const form = document.getElementById("login-form");
-    const btn = document.getElementById("loginBtn");
-    const statusMsg = document.getElementById("statusMsg");
-    const pass = document.getElementById("password");
-    const toggle = document.getElementById("togglePass");
+    let supabaseClient;
+    window.addEventListener("DOMContentLoaded", () => {
+      if (!window.supabase) {
+        console.error("Supabase SDK não carregou.");
+        return;
+      }
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    toggle.addEventListener("click", () => {
-      const isPwd = pass.type === "password";
-      pass.type = isPwd ? "text" : "password";
-      toggle.textContent = isPwd ? "🙈" : "👁️";
-      toggle.setAttribute("aria-label", isPwd ? "Ocultar senha" : "Mostrar senha");
-    });
+      const form = document.getElementById("login-form");
+      const btn = document.getElementById("loginBtn");
+      const statusMsg = document.getElementById("statusMsg");
+      const pass = document.getElementById("password");
+      const toggle = document.getElementById("togglePass");
+      const emailEl = document.getElementById("email");
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      statusMsg.textContent = "";
-      statusMsg.className = "status";
+      // Mostrar/ocultar senha
+      toggle.addEventListener("click", () => {
+        const isPwd = pass.type === "password";
+        pass.type = isPwd ? "text" : "password";
+        toggle.textContent = isPwd ? "🙈" : "👁️";
+        toggle.setAttribute("aria-label", isPwd ? "Ocultar senha" : "Mostrar senha");
+        toggle.setAttribute("aria-pressed", String(isPwd));
+      });
 
-      const email = document.getElementById("email").value.trim();
-      const password = pass.value;
+      // Submit do formulário
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-      btn.disabled = true;
-      btn.textContent = "Entrando…";
-
-      try {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-          statusMsg.textContent = "Erro: " + (error.message || "não foi possível entrar.");
-          statusMsg.classList.add("error");
-          btn.disabled = false;
-          btn.textContent = "Entrar";
-        } else {
-          statusMsg.textContent = "Login realizado com sucesso! Redirecionando…";
-          statusMsg.classList.add("ok");
-          window.location.href = "dashboard.html";
+        // Validação simples
+        const email = emailEl.value.trim();
+        const password = pass.value;
+        if (!email || !password) {
+          showStatus("Preencha email e senha.", "error");
+          return;
         }
-      } catch (err) {
-        statusMsg.textContent = "Erro inesperado. Tente novamente.";
-        statusMsg.classList.add("error");
-        btn.disabled = false;
-        btn.textContent = "Entrar";
+
+        setLoading(true);
+
+        try {
+          const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+          if (error) {
+            showStatus(error.message || "Não foi possível entrar.", "error");
+            setLoading(false);
+            return;
+          }
+
+          showStatus("Login realizado com sucesso! Redirecionando…", "ok");
+          // Por UX, pequeno delay para o usuário ler a mensagem
+          setTimeout(() => {
+            window.location.href = "dashboard.html";
+          }, 600);
+        } catch (err) {
+          console.error(err);
+          showStatus("Erro inesperado. Tente novamente.", "error");
+          setLoading(false);
+        }
+      });
+
+      function setLoading(isLoading) {
+        btn.disabled = isLoading;
+        form.setAttribute("aria-busy", String(isLoading));
+        btn.textContent = isLoading ? "Entrando…" : btn.dataset.defaultText;
+      }
+
+      function showStatus(message, type) {
+        statusMsg.textContent = message;
+        statusMsg.className = "status " + (type || "");
       }
     });
   </script>
