@@ -1,76 +1,84 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Entrar</title>
-  <link rel="icon" type="image/png" href="img/logo.png">
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>Login - FinanceAPP</title>
+  <link rel="icon" type="image/png" href="img/logo.png" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 </head>
-<body class="center">
-  <main class="login-card">
-    <img class="login-logo" src="img/logo.png" alt="Logo do sistema">
-    <h2>Sistema de Gestão</h2>
-    <p class="subtitle">Faça seu login para acessar o Dashboard.</p>
+<body class="auth-page">
+  <main class="card auth-card">
+    <img src="img/logo.png" alt="FinanceAPP" class="logo" />
 
-    <form id="form-login" novalidate>
-      <div class="form-field">
-        <label for="email">E-mail</label>
-        <div class="input">
-          <span class="i i-mail" aria-hidden="true"></span>
-          <input id="email" type="email" placeholder="voce@exemplo.com" required />
-        </div>
+    <h2 class="auth-title">Entrar</h2>
+
+    <form id="login-form" class="auth-form">
+      <label class="sr-only" for="email">Email</label>
+      <input type="email" id="email" placeholder="Email" required />
+
+      <div class="input-group">
+        <label class="sr-only" for="password">Senha</label>
+        <input type="password" id="password" placeholder="Senha" required />
+        <button type="button" id="togglePass" class="icon ghost" aria-label="Mostrar senha">
+          👁️
+        </button>
       </div>
 
-      <div class="form-field">
-        <label for="password">Senha</label>
-        <div class="input">
-          <span class="i i-lock" aria-hidden="true"></span>
-          <input id="password" type="password" placeholder="••••••••" required minlength="6" />
-        </div>
-      </div>
-
-      <button id="btn" class="btn btn-login" type="submit">Entrar</button>
-      <p id="msg" class="erro-msg"></p>
+      <button class="btn" id="loginBtn" type="submit">Entrar</button>
+      <p id="statusMsg" class="status"></p>
     </form>
   </main>
 
-  <footer><p>© 2025 Sistema de Gestão Financeira S.Schveitzer - Todos os direitos reservados | <a href="privacidade.html">Política de Privacidade</a></p></footer>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const SUPABASE_URL = 'https://ppoufxezqmbxzflijmpx.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwb3VmeGV6cW1ieHpmbGlqbXB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1NzY1MTgsImV4cCI6MjA3MjE1MjUxOH0.7wntt2EbXsb16Zob9F81XFUKognKHKn0jxP6UdfF_ZY';
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true } });
+    const supabase = window.supabase.createClient(
+      "https://ppoufxezqmbxzflijmpx.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwb3VmeGV6cW1ieHpmbGlqbXB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1NzY1MTgsImV4cCI6MjA3MjE1MjUxOH0.7wntt2EbXsb16Zob9F81XFUKognKHKn0jxP6UdfF_ZY"
+    );
 
-    // redireciona se já logado
-    sb.auth.getUser().then(({ data:{ user } }) => { if (user) location.href = 'dashboard.html'; });
+    const form = document.getElementById("login-form");
+    const btn = document.getElementById("loginBtn");
+    const statusMsg = document.getElementById("statusMsg");
+    const pass = document.getElementById("password");
+    const toggle = document.getElementById("togglePass");
 
-    document.getElementById('form-login').addEventListener('submit', async (e) => {
+    toggle.addEventListener("click", () => {
+      const isPwd = pass.type === "password";
+      pass.type = isPwd ? "text" : "password";
+      toggle.textContent = isPwd ? "🙈" : "👁️";
+      toggle.setAttribute("aria-label", isPwd ? "Ocultar senha" : "Mostrar senha");
+    });
+
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-      const msg = document.getElementById('msg');
-      msg.textContent = 'Entrando...';
-      msg.classList.remove('show');
+      statusMsg.textContent = "";
+      statusMsg.className = "status";
 
-      const { error } = await sb.auth.signInWithPassword({ email, password });
-      if (error) {
-        msg.textContent = 'Erro: ' + (error.message || 'login inválido');
-        msg.classList.add('show');
-        return;
+      const email = document.getElementById("email").value.trim();
+      const password = pass.value;
+
+      btn.disabled = true;
+      btn.textContent = "Entrando…";
+
+      try {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          statusMsg.textContent = "Erro: " + (error.message || "não foi possível entrar.");
+          statusMsg.classList.add("error");
+          btn.disabled = false;
+          btn.textContent = "Entrar";
+        } else {
+          statusMsg.textContent = "Login realizado com sucesso! Redirecionando…";
+          statusMsg.classList.add("ok");
+          window.location.href = "dashboard.html";
+        }
+      } catch (err) {
+        statusMsg.textContent = "Erro inesperado. Tente novamente.";
+        statusMsg.classList.add("error");
+        btn.disabled = false;
+        btn.textContent = "Entrar";
       }
-
-      // whitelist
-      const wl = await sb.from('app_allowed_emails').select('email').eq('email', email.toLowerCase()).maybeSingle();
-      if (wl.error || !wl.data) {
-        await sb.auth.signOut();
-        msg.textContent = 'Acesso negado para este e-mail.';
-        msg.classList.add('show');
-        return;
-      }
-
-      location.href = 'dashboard.html';
     });
   </script>
 </body>
